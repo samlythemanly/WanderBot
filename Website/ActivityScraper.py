@@ -1,31 +1,38 @@
 from bs4 import BeautifulSoup
 import requests
 from math import ceil
+import pickle
 
 # Consts
 START_INDEX = 0
 MAX_RESULTS_PER_PAGE = 50
 
-# Vars
-activityList = {}
-
 def main():
   print("Starting up!")
-  # Request the first page
-  result = requests.get(createURL(MAX_RESULTS_PER_PAGE,0))
-  print("Calculating metadata")
-  #Figure out how many pages there are 
-  total_pages = ceil(int(getTotalMembers(result.content)) / MAX_RESULTS_PER_PAGE)
-  # Don't forget to scrape the first page
-  print("Scraping page 0")
-  scrapePage(result.content)
-  for page in range(1,total_pages+1): # Everyone knows arrays start at 1.
-    print(f"Scraping page {page}")
-    url = createURL(MAX_RESULTS_PER_PAGE, page)
-    result = requests.get(url)
-    scrapePage(result.content)
-  print(f"Finished scraping. Sanity Check: {len(activityList)} total scraped data")
-  print(activityList)
+  try:
+    with open("activityList.p", "rb") as cache_in:
+      activityList = pickle.load(cache_in)
+  except FileNotFoundError:
+    activityList = {}
+    print("Could not find cached data, scraping again")
+    # Request the first page
+    result = requests.get(createURL(MAX_RESULTS_PER_PAGE,0))
+    print("Calculating metadata")
+    #Figure out how many pages there are 
+    total_pages = ceil(int(getTotalMembers(result.content)) / MAX_RESULTS_PER_PAGE)
+    # Don't forget to scrape the first page
+    print("Scraping page 0")
+    scrapePage(result.content, activityList)
+    for page in range(1,total_pages+1): # Everyone knows arrays start at 1.
+      print(f"Scraping page {page}")
+      url = createURL(MAX_RESULTS_PER_PAGE, page)
+      result = requests.get(url)
+      scrapePage(result.content, activityList)
+    print(f"Finished scraping. Sanity Check: {len(activityList)} total scraped data")
+    print(activityList)
+    with open("activityList.p","wb") as cache_out:
+      pickle.dump( activityList, cache_out )
+  updateDatabase(activityList)
   return
 
 def getTotalMembers(data):
@@ -42,7 +49,7 @@ def getTotalMembers(data):
     print(f"done. All members fit in a page, so...50?")
   return totalMembers
 
-def scrapePage(data):
+def scrapePage(data, activityList):
   soup = BeautifulSoup(data, 'html.parser')
   table = soup.find('table', border=0)
   raw_rows = table.findAll('tr')
@@ -50,7 +57,17 @@ def scrapePage(data):
     nameField = row.find('td', {"class": "row4 name"})
     postCountField = row.find('td', {"class": "row4 posts"})
     if nameField and postCountField:
-      activityList[nameField.string] = postCountField.string
+      activityList[str(nameField.string)] = str(postCountField.string)
+
+def updateDatabase(activityList):
+  print('yay you did a thing')
+    # select the row from the db to get old_post_count
+    # save posts under new column
+    # test cases:
+    #   What if the user doesn't exist in the database (this will happen a lot at the start)
+    #   What if the user's old post is HIGHER than the scraped post count?
+    #   What if the characters post count hasn't changed
+    # What tables do we need to update
 
 
 def createURL(maxResultsPerPage, pageNumber):
