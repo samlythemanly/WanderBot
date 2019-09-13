@@ -106,4 +106,4 @@ venv.bak/
 # WanderBot Custom
 .DS_Store
 private_info.py
-
+*.p

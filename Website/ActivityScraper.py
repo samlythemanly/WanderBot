@@ -2,6 +2,25 @@ from bs4 import BeautifulSoup
 import requests
 from math import ceil
 import pickle
+import re
+
+''' 
+    Activity Scraper.
+
+Scrape all the top posts from the site and update DBs accordingly.
+In order to avoid DOSing the site, we export a pickle object at the end of
+  a successful scrape to be reused next time. (development only.)
+
+Scraper will format the data as a list of character objects.
+  activityList = [
+      {
+        id: int
+        name: str
+        postCount: int
+      },
+      ...
+  ]
+'''
 
 # Consts
 START_INDEX = 0
@@ -13,7 +32,7 @@ def main():
     with open("activityList.p", "rb") as cache_in:
       activityList = pickle.load(cache_in)
   except FileNotFoundError:
-    activityList = {}
+    activityList = []
     print("Could not find cached data, scraping again")
     # Request the first page
     result = requests.get(createURL(MAX_RESULTS_PER_PAGE,0))
@@ -29,10 +48,10 @@ def main():
       result = requests.get(url)
       scrapePage(result.content, activityList)
     print(f"Finished scraping. Sanity Check: {len(activityList)} total scraped data")
-    print(activityList)
     with open("activityList.p","wb") as cache_out:
       pickle.dump( activityList, cache_out )
   updateDatabase(activityList)
+  print(activityList)
   return
 
 def getTotalMembers(data):
@@ -57,10 +76,14 @@ def scrapePage(data, activityList):
     nameField = row.find('td', {"class": "row4 name"})
     postCountField = row.find('td', {"class": "row4 posts"})
     if nameField and postCountField:
-      activityList[str(nameField.string)] = str(postCountField.string)
+      characterData = {}
+      characterData["id"] = int(re.findall(r"\d{1,}$",nameField.find('a')['href'])[0])
+      characterData["name"] = str(nameField.string)
+      characterData["postCount"] = int(postCountField.string)
+      activityList.append(characterData)
 
 def updateDatabase(activityList):
-  print('yay you did a thing')
+  #TODO.
     # select the row from the db to get old_post_count
     # save posts under new column
     # test cases:
