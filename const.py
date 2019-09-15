@@ -1,7 +1,7 @@
 ALLOWED_CHANNELS = ['bot-test']
 STATUS_LIST = ["PLAYING: with fire",
         "WATCHING: 'How to be human'",
-        "STREAMING: baking a cake",
+        #"STREAMING: baking a cake",
         "WATCHING: Bob Ross paint",
         "LISTENING: an electric fan",
         "PLAYING: with a roomba",
@@ -12,5 +12,11 @@ STATUS_LIST = ["PLAYING: with fire",
         "LISTENING: Mozart Symphony No. 40",
         "PLAYING: doubles tennis",
         "LISTENING: NPR"]
+ACTION_ENUM = {
+        "PLAYING": 0,
+        "STREAMING": 1,
+        "LISTENING": 2,
+        "WATCHING": 3
+}
 
 TRIGGER_SYMBOL = '!'
