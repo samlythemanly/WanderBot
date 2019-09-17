@@ -3,6 +3,7 @@ import requests
 from math import ceil
 import pickle
 import re
+import mysql.connector
 
 ''' 
     Activity Scraper.
@@ -51,7 +52,7 @@ def main():
     with open("activityList.p","wb") as cache_out:
       pickle.dump( activityList, cache_out )
   updateDatabase(activityList)
-  print(activityList)
+  #print(activityList)
   return
 
 def getTotalMembers(data):
@@ -83,15 +84,65 @@ def scrapePage(data, activityList):
       activityList.append(characterData)
 
 def updateDatabase(activityList):
-  #TODO.
-    # select the row from the db to get old_post_count
-    # save posts under new column
-    # test cases:
-    #   What if the user doesn't exist in the database (this will happen a lot at the start)
-    #   What if the user's old post is HIGHER than the scraped post count?
-    #   What if the characters post count hasn't changed
-    # What tables do we need to update
+  mydb = mysql.connector.connect(
+    host="",
+    user="",
+    passwd="", 
+    database=""
+  )
 
+  flag = 1
+  mycursor = mydb.cursor()
+  mycursor.execute("SELECT * FROM Characters")
+  characters = mycursor.fetchall()
+  newCharactersCount = len(activityList) - len(characters)
+
+  #insert new characters
+  if newCharactersCount > 0 :
+    val = []
+    newCharacters = activityList[-newCharactersCount:]
+    for character in newCharacters:
+      val.append((character['id'], character['name'], character['postCount'], character['postCount']))
+
+    sql = "INSERT INTO Characters (id, name, total_posts, posts_this_month) VALUES (%s, %s, %s, %s)"
+    mycursor.executemany(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, val, " was inserted.")
+    flag = 0
+
+  #check post count
+  for character in characters:
+    for activity in activityList:
+      if character[0] == activity['id'] and character[3] < activity['postCount']:
+        #update database
+        #character[]
+        #0 id
+        #1 name
+        #2 DiscordID
+        #3 total_posts
+        #4 posts_this_month
+
+        #ActivityHistory update
+        sql = "INSERT INTO ActivityHistory (characterID, old_post_count, new_post_count) VALUES (%s, %s, %s)"
+        val = (character[0], character[3], activity['postCount'])
+        mycursor.execute(sql, val)
+        mydb.commit()
+        print(mycursor.rowcount, "record(s) affected")
+
+        #character post increment
+        newPosts = character[4] + (character[3] - activity['postCount'])
+        sql = "UPDATE Characters SET total_posts = %s, posts_this_month = %s WHERE id = %s"
+        val = (activity['postCount'], newPosts, character[0])
+
+        mycursor.execute(sql, val)
+        mydb.commit()
+        print(mycursor.rowcount, "record(s) affected")
+        flag = 0
+
+      else:
+        continue
+  if flag:
+    print(f'No post counts updated or characters inserted')
 
 def createURL(maxResultsPerPage, pageNumber):
   ind = pageNumber * maxResultsPerPage
