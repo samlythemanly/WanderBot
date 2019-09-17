@@ -5,6 +5,7 @@ import const
 
 
 ALL_ALLOWED_CHANNELS = ['bot-test']
+SECRET_CHANNEL = ['temp']
 QUIDDITCH = ['the-field']
 ADMIN_ROLE = 'Admin'
 MOD_ROLE = 'Moderator'
@@ -48,6 +49,16 @@ COMMANDS = {
 	   			'roles':[ADMIN_ROLE],
 	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
 	   			'channels':ALL_ALLOWED_CHANNELS
+	   			},
+	   	'mock': {
+	   			'roles':['all'],
+	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
+	   			'channels':SECRET_CHANNEL
+	   			},
+	   	'compliment': {
+	   			'roles':['all'],
+	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
+	   			'channels':SECRET_CHANNEL
 	   			}
 }
 
@@ -129,6 +140,35 @@ async def find(message):
 #	This command can take numerous forms: ...TODO
 # async def activity(message):
 
+# Mock the last tagged user's message
+#	Pretty self explanitory
+async def mock(message):
+	user_to_mock = message.mentions[0]
+	if not user_to_mock:
+		return
+	async for m in message.channel.history():
+		if m.author == user_to_mock:
+			response = ''
+			flag = random.randint(0,1)
+			for char in m.content:
+				if flag:
+					response += char.lower()
+					flag = 0
+				else:
+					response += char.upper()
+					flag = 1
+			return await message.channel.send(f'{response} - {m.author.mention}')
+
+async def compliment(message):
+	try:
+		user_to_compliment = message.mentions[0]
+	except IndexError:
+		return await message.channel.send(f"I don't know who you want me to compliment, so I'll compliment myself. I'm a good bot and I do good things. Thanks {message.author.mention}!")
+	compliment = random.choice(const.COMPLIMENTS)
+	return await message.channel.send(f"Hey {user_to_compliment.mention}, {compliment}")
+
+
+
 
 
 
@@ -157,4 +197,5 @@ async def getUserFromID(message,dID):
 
 def reloadLibs():
 	reload(db)
+	reload(const)
 	return

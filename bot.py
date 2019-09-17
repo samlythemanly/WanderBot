@@ -82,7 +82,7 @@ async def parseMessage(message):
         # Handle the 'special' commands
         if prefix == 'reload':
             reloadCommands()
-            return await message.channel.send("Reloaded module successfully.")
+            return await message.channel.send("Gotcha boss! 👍")
         if prefix == 'change_status':
             return await change_status()
         # Okay, pass control to the commands module.
