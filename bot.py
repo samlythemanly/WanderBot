@@ -21,6 +21,7 @@ client = discord.Client()
 #    - fuckin everything else
 
 favorite_user = None
+flagged_message = 0
 
 @client.event
 async def on_ready():
@@ -50,6 +51,8 @@ async def on_message(message):
        # Let's get the easter eggs out of the way...
        # We only do this if they're not trying to write a command.
     else:
+        if 'bad wanderbot' in message.content.lower():
+            return await message.add_reaction('😢')
         if 'wanderbot' in message.content.lower():
             await message.add_reaction('👋')
         if 'drama' in message.content.lower():
@@ -57,7 +60,7 @@ async def on_message(message):
         if 'good bot' in message.content.lower():
             await message.add_reaction('😊')
         if 'bad bot' in message.content.lower():
-            await message.add_reaction(':cold_sweat:')
+            await message.add_reaction('😢')
         if message.mentions:
             for mention in message.mentions:
                 if mention.id == BOT_ID: # our own ID

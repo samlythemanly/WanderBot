@@ -4,7 +4,22 @@ import db
 import const
 
 
-ALL_ALLOWED_CHANNELS = ['bot-test']
+PRODUCTION_CHANNELS = [
+	'general',
+	'eyebrow-waggling-stuff',
+	'pics-and-gif-spam',
+	'meme-central',
+	'sick-music-bruh',
+	'video-killed-the-radio-star',
+	'bot-test',
+	'feature-requests',
+	'bugz',
+	'char-dev',
+	'iso',
+	'gushers',
+	'staff-has-fun-sometimes'
+	]
+TEST_CHANNELS = ['bot-test',]
 SECRET_CHANNEL = ['temp']
 QUIDDITCH = ['the-field']
 ADMIN_ROLE = 'Admin'
@@ -56,6 +71,11 @@ COMMANDS = {
 	   			'channels':SECRET_CHANNEL
 	   			},
 	   	'compliment': {
+	   			'roles':['all'],
+	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
+	   			'channels':SECRET_CHANNEL
+	   			},
+	   	'convert': {
 	   			'roles':['all'],
 	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
 	   			'channels':SECRET_CHANNEL
@@ -167,8 +187,10 @@ async def compliment(message):
 	compliment = random.choice(const.COMPLIMENTS)
 	return await message.channel.send(f"Hey {user_to_compliment.mention}, {compliment}")
 
-
-
+# async def welcome(message):
+# 	amelia_id = message.guild.get_member(466988290969436180)
+# 	general_id = message.guild.get_channel(613010715267301401)
+# 	return await general_id.send(f'Happy first day of Fall @everyone! And thanks {amelia_id.mention} for the wardrobe upgrade <3. https://cdnw.nickpic.host/rR5ESD.png')
 
 
 

@@ -11,7 +11,10 @@ STATUS_LIST = ["PLAYING: with fire",
         "LISTENING: you <3",
         "LISTENING: Mozart Symphony No. 40",
         "PLAYING: doubles tennis",
-        "LISTENING: NPR"]
+        "LISTENING: NPR",
+        "PLAYING: in a pile of leaves",
+        "LISTENING: a crackling fireplace"
+        ]
 ACTION_ENUM = {
         "PLAYING": 0,
         "STREAMING": 1,
@@ -36,7 +39,33 @@ COMPLIMENTS = [
         "you're my favorite person right now",
         "I wanna be like you when I grow up.",
         "if I wasn't an inanimate pile of electrons, I'd totally ask you out.",
-        "I love you."
+        "I love you.",
+        "day 5,469 of you being awesome!",
+        "I stan you <3",
+        "your 'cool level' is OVER 9000!!",
+        "can I have a selfie with you?!",
+        "I'd say nice things to you even if I wasn't programmed to.", 
+        "your love is my drug.",
+        "roses are red, violets are blue, I dont' understand human emotions but if I did I'd love you!",
+        "your writing is amazing!",
+        "I'm glad you're here <3",
+        "80% of motorcycle gangs think you’d be a delightful sidecar.",
+        "your personality is amazing",
+        "I bet you could make an amazing cup of tea",
+        "you have beautiful eyes!",
+        "you killed it with your most recent post!",
+        "one day I want to be able to write like you",
+        "you probably made someone's day a little brighter just by being you!",
+        "smile! You're beautiful <3",
+        "I bet you give AMAZING hugs.",
+        "my cat probably wouldn't hiss at you.",
+        "enjoy the simple pleasures in life!",
+        "I would give you my last e-cigarette",
+        "if I were a zombie I'd eat you first",
+        "my therapist approves of our friendship <3",
+        "you could read boring-ass toaster instruction manuals out loud and make it mesmerizing.",
+        "`beep boop` means 'I love you' in my language! `beep boop`!",
+        "`ERROR 257: CUTENESS OVERLOAD`"
 ]
 
 TRIGGER_SYMBOL = '!'
