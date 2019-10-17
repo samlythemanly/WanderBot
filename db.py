@@ -12,16 +12,57 @@ db = mysql.connector.connect(
 	database=DB_CATALOG
 	)
 
-cur = db.cursor(dictionary=True)
+cur = db.cursor(dictionary=True, buffered=True)
 
+###################################################
+###				READ-ONLY COMMANDS				###
+###################################################
 
 async def getCharacterFromID(charID):
 	sql = f'SELECT * from Characters where ID={int(charID)}'
 	cur.execute(sql)
 	res = cur.fetchone()
+	db.commit()
 	if res:
 		return res
 	return None
+
+async def getCharactersFromIDs(charIDs):
+	sql = f"SELECT name FROM Characters WHERE ID in ({','.join(charIDs)})"
+	cur.execute(sql)
+	res = cur.fetchall()
+	db.commit()
+	if res:
+		return [c['name'] for c in res]
+	else:
+		return None
+
+async def getIDfromName(playerName):
+	sql = f"SELECT * from Players where LOWER(name) = '{playerName.lower()}'"
+	cur.execute(sql)
+	res = cur.fetchone()
+	db.commit()
+	if res:
+		return res
+	return None
+
+async def getPlayerCharacters(playerID):
+	sql = (f"select c.name, c.total_posts, c.posts_this_month, c.on_probation"
+	f" from Characters c left join Players p on c.discordID = p.discordID"
+	f" where c.name is not null"
+	f" and c.archived = 0"
+	f" and p.discordID = {playerID}"
+	f" ORDER BY c.name ASC")
+	cur.execute(sql)
+	res = cur.fetchall()
+	db.commit()
+	if res:
+		return res
+	return None
+
+###################################################
+###				UPDATE COMMANDS					###
+###################################################
 
 async def linkDiscordToCharacters(discordID, characterIDs):
 	sql = f"UPDATE Characters set discordID={discordID} WHERE ID in ({','.join(characterIDs)})"
@@ -29,11 +70,18 @@ async def linkDiscordToCharacters(discordID, characterIDs):
 	db.commit()
 	return cur.rowcount
 
-async def getCharactersFromIDs(charIDs):
-	sql = f"SELECT name FROM Characters WHERE ID in ({','.join(charIDs)})"
+async def linkDiscordToPlayer(discordID, playerName):
+	# First, see if this player already exists in the table
+	sql = f'SELECT * from Players where discordID={int(discordID)}'
 	cur.execute(sql)
-	res = cur.fetchall()
-	if res:
-		return [c['name'] for c in res]
+	res = cur.fetchone()
+	if res: # we need to update the name
+		sql = f"UPDATE Players set name='{playerName}' WHERE discordID ={int(discordID)}"
+		cur.execute(sql)
+		db.commit()
+		return ("update",cur.rowcount)
 	else:
-		return None
+		sql = f"INSERT INTO Players (name,discordID) VALUES ('{playerName}',{int(discordID)})"
+		cur.execute(sql)
+		db.commit()
+		return ("insert",cur.rowcount)

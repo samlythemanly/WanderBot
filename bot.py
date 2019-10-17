@@ -1,12 +1,12 @@
 from importlib import reload ## DEBUGGING
 import const
-from private_info import API_TOKEN, BOT_ID
+from private_info import API_TOKEN, BOT_ID, LOG_PATH
 import discord
 import commands
 import logging
 import random
 
-logging.basicConfig(filename='wanderbot.log', filemode='a',level=logging.INFO,format='%(asctime)s - %(message)s')
+logging.basicConfig(filename=f'{LOG_PATH}/wanderbot.log', filemode='a',level=logging.INFO,format='%(asctime)s - %(message)s')
 client = discord.Client()
 
 l = logging.info # Me being lazy.
@@ -16,6 +16,7 @@ l = logging.info # Me being lazy.
 ######################
 #    - DB engine
 #    - Quidditch commands
+#    - Help with individual commands
 #    - Fuzzy command helper?
 #    - More easter eggs?
 #    - Gambling?!
@@ -65,6 +66,8 @@ async def on_message(message):
             await message.add_reaction('😊')
         if 'bad bot' in message.content.lower():
             await message.add_reaction('😢')
+        if 'spooky' in message.content.lower():
+            await message.add_reaction('👻')
         if message.mentions:
             for mention in message.mentions:
                 if mention.id == BOT_ID: # our own ID

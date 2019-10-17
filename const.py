@@ -24,7 +24,7 @@ STATUS_LIST = ["PLAYING: with fire",
         "LISTENING: NPR",
         "PLAYING: in a pile of leaves",
         "LISTENING: a crackling fireplace",
-        "PLAYING: with my BFF <3 squigde <3"
+        "PLAYING: with my BFF <3 Squidge <3"
         ]
 ACTION_ENUM = {
         "PLAYING": 0,

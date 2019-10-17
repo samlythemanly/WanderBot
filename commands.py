@@ -4,6 +4,8 @@ import db
 import const
 import logging
 import asyncio
+import re
+from beautifultable import BeautifulTable
 
 l = logging.info
 
@@ -23,6 +25,9 @@ PRODUCTION_CHANNELS = [
 	'staff-has-fun-sometimes'
 	]
 TEST_CHANNELS = ['bot-test','feature-requests','temp']
+STAFF_CATEGORIES = ['Bot Playground',
+	'The Magic Treehouse'
+	]
 SECRET_CHANNEL = ['temp']
 QUIDDITCH = ['the-field']
 
@@ -76,11 +81,11 @@ COMMANDS = {
 				'channels':PRODUCTION_CHANNELS,
 				'hidden':False
 				},
-		# 'activity': {
-	 #   			'roles':[ROLES.ADMIN],
-	 #   			'channels':PRODUCTION_CHANNELS,
-	 #   			'hidden':False
-	 #   			},
+		'activity': {
+	   			'roles':[ROLES.ADMIN],
+	   			'channels':TEST_CHANNELS,
+	   			'hidden':False
+	   			},
 	# Dev commands / in development commands
 		'favorite': {
 	   			'roles':[ROLES.DEV],
@@ -100,6 +105,11 @@ COMMANDS = {
 	   			'hidden':False
 	   			},
 	   	'reload': {
+				'roles':[ROLES.DEV],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
+		'debug': {
 				'roles':[ROLES.DEV],
 				'channels':TEST_CHANNELS,
 				'hidden':True
@@ -166,19 +176,43 @@ async def favorite(message,current_favorite_user):
 	else:
 		return await message.channel.send(f"I don't have a current favorite person right now!")
 
-# Link User to Character
-#	First argument is the discordID (int), all other arguments are comma delimeted characterIDs
-#	ex: !link 12345456 24, 25, 26
+# Link User to Character, or link Player to DiscordID
+#	Two execution paths:
+#	1. Link User to character(s) - First argument is the discordID (int), all other arguments are comma delimeted characterIDs
+#		ex: !link 123456 24, 25, 26
+#	2. Link User to custom name - First argument is the discordID (int), only other argument is the player name
+#		ex: !link 123456 Charles
 async def link(message):
 	l("Running 'link'")
 	parts = message.content.split(' ') #split on space first
+	if len(parts) < 3: #minimum number of required args
+		return await message.channel.send(f"Whoops! Looks like I need a little more info there...try again?")
+
 	prefix = parts[0] # The original command. Ignore it
 	discordID = parts[1] # The id of the person to link to.
+
 	# First, validate the ID and get the user.
 	target = await getUserFromID(message,discordID)
 	if not target:
 		# Invalid discordID, abort.
 		return await message.channel.send(f"Sorry, I can't find anyone with that name, try again?")
+	
+	if re.search(r"[a-zA-Z]",parts[2]): # Checks for letters in the second argument, which means we're going down path (2)
+		# Update the players table to link this discordID to the player name
+		if len(parts) != 3:
+			return await message.channel.send(f"Oops! Something went wrong. If you're trying to link a discord ID to player name, here's an example of the command: `!link 124345 WanderBot`")
+		player_name = parts[2]
+		# if re.search(r"\d",player_name):
+		# 	return await message.channel.send(f"Sorry, player names cannot contain numbers. Don't blame me, blame society.")
+
+		#whew okay let's keep going.
+		operation,row_count = await db.linkDiscordToPlayer(target.id, player_name)
+		if operation == 'update': # we updated their name
+			return await message.channel.send(f"Updated the name of ID {discordID} to {player_name}")
+		else:
+			return await message.channel.send(f"Linked ID {discordID} to player name: {player_name}")
+
+	# Okay let's go down the other path now (1), linked a discord ID to characters
 	charList = ' '.join(parts[2:]).replace(' ','').split(',')
 	rows_updated = await db.linkDiscordToCharacters(target.id,charList)
 	if rows_updated > 0:
@@ -196,18 +230,65 @@ async def link(message):
 
 # Find Character
 #	Searches the db for a character and returns info about them
+#	ex. !find 3
 async def find(message):
 	l("Running 'find'")
-	parts = message.content.split(' ') #split on space first
-	prefix = parts[0]
-	charID = parts[1]
+	charInfo = None
+	try:
+		parts = message.content.split(' ') #split on space first
+		prefix = parts[0]
+		charID = parts[1]
+	except IndexError:
+		return await message.channel.send(f"No ID supplied! Format should be `!find <character ID>`, example: `!find 2`")
 	charInfo = await db.getCharacterFromID(charID)
-	print(charInfo['ID'])
+	if not charInfo:
+		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+	return await message.channel.send(
+		f"Character ID: {charInfo['ID']}\n"
+		f"Character name: {charInfo['name']}\n"
+		f"Total posts: {charInfo['total_posts']}\n"
+		f"Posts this month: {charInfo['posts_this_month']}\n"
+		f"On probation? {'Yes' if int(charInfo['on_probation']) else 'No'}")
 
 # Activity Check
-#	Takes a user/character and returns the status of that character, as well as post quotas.
-#	This command can take numerous forms: ...TODO
-# async def activity(message):
+#	Takes a player name and returns the status of all their characters.
+#	If it's Staff, then respond in that channel, if it's a normal user, PM them. 
+#	ex. !activity Charles
+async def activity(message):
+	l("Running 'activity'")
+	parts = message.content.split(' ') #split on space first
+	player_id = message.author.id # default to their id first
+	if isStaff(message) and len(parts) > 1 and str(message.channel.category) in STAFF_CATEGORIES: # They're asking for someone else's characters (must be staff)
+		#They supplied a player name, so we should return all active characters for that player.
+		result = await db.getIDfromName(parts[1])
+		if not result:
+			return await message.channel.send(f"Sorry, couldn't find a player with the name: {parts[1]}. Check the spelling or link a name to a discord ID using `!link`")
+		player_id = result['discordID']
+
+	# So we now know it's a valid ID, let's pull all the characters for that player.
+	chars = await db.getPlayerCharacters(player_id)
+	if not chars:
+		return await message.channel.send(f"Whelp, looks like I couldn't find any characters ¯\\_(ツ)_/¯")
+
+	table = BeautifulTable()
+	table.column_headers = ["Character", "Total Posts", "Posts this month", "On Probation?"]
+	for char in chars:
+		n = char['name']
+		tp = char['total_posts']
+		tpm = char['posts_this_month']
+		p = 'Yes' if int(char['on_probation']) else 'No'
+		table.append_row([n,tp,tpm,p])
+
+	# return await message.author.send(f"```{table}```")
+
+	#Okay now we have all the info. Now we decide if we need to respond in the channel or PM the user.
+	if isStaff(message):
+		if str(message.channel.category) in STAFF_CATEGORIES:
+			header = f"** Here ya go! **"
+			return await message.channel.send(f"{header}\n```{table}```")
+	else:
+		header = f"** Hey {message.author.mention} here are your character's activities! **"
+		return await message.author.send(f"{header}```{table}```")
 
 # Mock the last tagged user's message
 #	Pretty self explanitory
@@ -251,7 +332,7 @@ async def compliment(message):
 #	Else, return a helpful message
 async def convert(message):
 	l("Running 'convert'")
-	parts = message.content.replace('$','').replace('£','').split(' ')
+	parts = re.sub('[£$,]','',message.content).split(' ')
 	args = len(parts[1:])
 	# Which direction are they trying to convert?
 	if args == 1: # they're trying to convert muggle -> wizard
@@ -291,7 +372,9 @@ async def joke(message):
 		await asyncio.sleep(3)
 		return await message.channel.send(joke[1])
 
-
+#General debugging command, used by dev only
+async def debug(message):
+	return await message.author.send(f"{message.channel}")
 
 
 
@@ -317,6 +400,16 @@ async def getUserFromID(message,dID):
 		if user.id == int(dID):
 			return user
 	return None
+
+def isStaff(message):
+	if 'Robot' in [str(r) for r in message.author.roles]:
+		return True
+	# Check the user's role for this command.
+	staff_roles = [ROLES.ADMIN,ROLES.MOD]
+	for role in message.author.roles:
+		if role in staff_roles:
+			return True
+	return False
 
 def reloadLibs():
 	reload(db)
