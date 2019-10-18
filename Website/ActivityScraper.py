@@ -4,6 +4,9 @@ from math import ceil
 import pickle
 import re
 import mysql.connector
+import sys
+sys.path.append("..")
+from private_info import DB_HOST, DB_USER, DB_PASSWORD, DB_CATALOG
 
 ''' 
     Activity Scraper.
@@ -85,64 +88,57 @@ def scrapePage(data, activityList):
 
 def updateDatabase(activityList):
   mydb = mysql.connector.connect(
-    host="",
-    user="",
-    passwd="", 
-    database=""
+    host=DB_HOST,
+    user=DB_USER,
+    passwd=DB_PASSWORD,
+    database=DB_CATALOG
   )
 
-  flag = 1
-  mycursor = mydb.cursor()
+  flag = 1 
+  mycursor = mydb.cursor(dictionary=True)
   mycursor.execute("SELECT * FROM Characters")
+  # Grab all currently known characters from the database
   characters = mycursor.fetchall()
-  newCharactersCount = len(activityList) - len(characters)
-
-  #insert new characters
-  if newCharactersCount > 0 :
-    val = []
-    newCharacters = activityList[-newCharactersCount:]
-    for character in newCharacters:
-      val.append((character['id'], character['name'], character['postCount'], character['postCount']))
-
-    sql = "INSERT INTO Characters (id, name, total_posts, posts_this_month) VALUES (%s, %s, %s, %s)"
-    mycursor.executemany(sql, val)
-    mydb.commit()
-    print(mycursor.rowcount, val, " was inserted.")
-    flag = 0
 
   #check post count
-  for character in characters:
-    for activity in activityList:
-      if character[0] == activity['id'] and character[3] < activity['postCount']:
-        #update database
-        #character[]
-        #0 id
-        #1 name
-        #2 DiscordID
-        #3 total_posts
-        #4 posts_this_month
-
+  flagged_chars = []
+  for activity in activityList:
+    char_found = False
+    print(f"Working on {activity['name']}")
+    for character in characters:
+      if character['ID'] == activity['id']:
+        char_found = True
+        if character["total_posts"] < activity['postCount']: # we want to update this character
         #ActivityHistory update
-        sql = "INSERT INTO ActivityHistory (characterID, old_post_count, new_post_count) VALUES (%s, %s, %s)"
-        val = (character[0], character[3], activity['postCount'])
-        mycursor.execute(sql, val)
-        mydb.commit()
-        print(mycursor.rowcount, "record(s) affected")
+          sql = "INSERT INTO ActivityHistory (characterID, old_post_count, new_post_count) VALUES (%s, %s, %s)"
+          val = (character["ID"], character["total_posts"], activity['postCount'])
+          mycursor.execute(sql, val)
+          mydb.commit()
+          print(mycursor.rowcount, f"record(s) affected for {activity['name']} in ActivityHistory table")
 
-        #character post increment
-        newPosts = character[4] + (character[3] - activity['postCount'])
-        sql = "UPDATE Characters SET total_posts = %s, posts_this_month = %s WHERE id = %s"
-        val = (activity['postCount'], newPosts, character[0])
+          #character montly post increment
+          newPosts = character["posts_this_month"] + (activity['postCount'] - character["total_posts"])
+          sql = "UPDATE Characters SET total_posts = %s, posts_this_month = %s WHERE ID = %s"
+          val = (activity['postCount'], newPosts, character["ID"])
 
-        mycursor.execute(sql, val)
-        mydb.commit()
-        print(mycursor.rowcount, "record(s) affected")
-        flag = 0
+          mycursor.execute(sql, val)
+          mydb.commit()
+          print(mycursor.rowcount, f"record(s) affected for {activity['name']} in Characters table")
+          flag = 0
 
       else:
         continue
+    if not char_found:
+      # This is a new character, we want to insert it
+      print(f"Flagging {activity['name']} to be inserted.")
+      flagged_chars.append((activity['id'], activity['name'], activity['postCount'], activity['postCount']))
+  if len(flagged_chars) >= 1:
+    sql = "INSERT INTO Characters (id, name, total_posts, posts_this_month) VALUES (%s, %s, %s, %s)"
+    mycursor.executemany(sql, flagged_chars)
+    mydb.commit()
+    print(mycursor.rowcount, flagged_chars, " was inserted.")
   if flag:
-    print(f'No post counts updated or characters inserted')
+    print(f'\n*No post counts updated or characters inserted*')
 
 def createURL(maxResultsPerPage, pageNumber):
   ind = pageNumber * maxResultsPerPage
