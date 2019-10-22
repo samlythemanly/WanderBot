@@ -93,19 +93,19 @@ COMMANDS = {
 	   			'hidden':True
 	   			},
 	   	'link': {
-	   			'roles':[ROLES.DEV],
+	   			'roles':[ROLES.ADMIN],
 	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
 	   			'channels':TEST_CHANNELS,
 	   			'hidden':False
 	   			},
 	   	'find': {
-	   			'roles':[ROLES.DEV],
+	   			'roles':[ROLES.ADMIN],
 	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
 	   			'channels':TEST_CHANNELS,
 	   			'hidden':False
 	   			},
 	   	'reload': {
-				'roles':[ROLES.DEV],
+				'roles':[ROLES.ADMIN],
 				'channels':TEST_CHANNELS,
 				'hidden':True
 				},
