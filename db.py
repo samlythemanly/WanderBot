@@ -60,6 +60,43 @@ async def getPlayerCharacters(playerID):
 		return res
 	return None
 
+async def archive(playerID):
+	sql = (f"UPDATE Characters SET archived = 1 WHERE ID = {playerID}")
+	cur.execute(sql)
+	res = cur.rowcount
+	db.commit()
+	if res:
+		return res
+	return None
+
+async def unarchive(playerID):
+	sql = (f"UPDATE Characters SET archived = 0 WHERE ID = {playerID}")
+	cur.execute(sql)
+	res = cur.rowcount
+	db.commit()
+	if res:
+		return res
+	return None
+
+async def probation():
+	sql = f'SELECT * from Characters where on_probation = 1'
+	cur.execute(sql)
+	res = cur.fetchall()
+	db.commit()
+	if res:
+		return res
+	return None
+
+async def archived():
+	sql = f'SELECT * from Characters where archived = 1'
+	cur.execute(sql)
+	res = cur.fetchall()
+	db.commit()
+	if res:
+		return res
+	return None
+
+
 ###################################################
 ###				UPDATE COMMANDS					###
 ###################################################

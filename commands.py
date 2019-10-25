@@ -114,6 +114,26 @@ COMMANDS = {
 				'channels':TEST_CHANNELS,
 				'hidden':True
 				},
+	   	'archive': {
+				'roles':[ROLES.ADMIN],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
+	   	'archived': {
+				'roles':[ROLES.ADMIN],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
+		'unarchive': {
+				'roles':[ROLES.DEV],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
+		'probation': {
+				'roles':[ROLES.DEV],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
 }
 
 
@@ -371,6 +391,74 @@ async def joke(message):
 	async with message.channel.typing():
 		await asyncio.sleep(3)
 		return await message.channel.send(joke[1])
+
+async def archive(message):
+	l("Running 'archive'")
+	try:
+		parts = message.content.split(' ') #split on space first
+		prefix = parts[0]
+		charID = parts[1]
+	except IndexError:
+		return await message.channel.send(f"No ID supplied! Format should be `!find <character ID>`, example: `!find 2`")
+	archived = await db.archive(charID)
+	if not archived:
+		return await message.channel.send(f"Could not archive a character with ID {charID}. Try again?")
+	charInfo = await db.getCharacterFromID(charID)
+	if not charInfo:
+		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+	return await message.channel.send(
+		f"{charInfo['name']} is now sleeping ZzZz...\n")
+
+async def unarchive(message):
+	l("Running 'unarchive'")
+	try:
+		parts = message.content.split(' ') #split on space first
+		prefix = parts[0]
+		charID = parts[1]
+	except IndexError:
+		return await message.channel.send(f"No ID supplied! Format should be `!find <character ID>`, example: `!find 2`")
+	unarchived = await db.unarchive(charID)
+	if not unarchived:
+		return await message.channel.send(f"Could not archive a character with ID {charID}. Try again?")
+	charInfo = await db.getCharacterFromID(charID)
+	if not charInfo:
+		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+	return await message.channel.send(
+		f"{charInfo['name']} is now alive!\n")
+
+async def probation(message):
+	l("Running 'archive'")
+	probation = await db.probation()
+	if not probation:
+		return await message.channel.send(f"Could not find any characters on probation. Woo!")
+
+	table = BeautifulTable()
+	table.column_headers = ["id", "Name", "On Probation?"]
+	for char in probation:
+		i = char['ID']
+		name = char['name']
+		p = 'Yes' if int(char['on_probation']) else 'No'
+		table.append_row([i,name,p])
+
+	header = f"** Here are the characters on probation :( **"
+	return await message.channel.send(f"{header}```{table}```")
+
+async def archived(message):
+	l("Running 'archived'")
+	archived = await db.archived()
+	if not archived:
+		return await message.channel.send(f"Could not find any characters on that are archived. Woo!")
+
+	table = BeautifulTable()
+	table.column_headers = ["id", "Name", "archived"]
+	for char in archived:
+		i = char['ID']
+		name = char['name']
+		a = 'Yes' if int(char['archived']) else 'No'
+		table.append_row([i,name,a])
+
+	header = f"** Here are the characters that are archived ...I mean asleep ZzZz **"
+	return await message.channel.send(f"{header}```{table}```")
 
 #General debugging command, used by dev only
 async def debug(message):
