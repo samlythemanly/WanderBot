@@ -1,12 +1,25 @@
 from importlib import reload ## DEBUGGING
 import const
-from private_info import API_TOKEN, BOT_ID, LOG_PATH
+from private_info import API_TOKEN, TEST_TOKEN, BOT_ID, LOG_PATH
 import discord
 import commands
 import logging
 import random
+import sys
 
-logging.basicConfig(filename=f'{LOG_PATH}/wanderbot.log', filemode='a',level=logging.INFO,format='%(asctime)s - %(message)s')
+if len(sys.argv) < 2:
+    print("Usage: python bot.py <PROD|DEV>")
+    exit(-1)
+if sys.argv[1] == 'DEV':
+    logging.basicConfig(filename=f'{LOG_PATH}/testbot.log', filemode='a',level=logging.INFO,format='%(asctime)s - %(message)s')
+    TOKEN = TEST_TOKEN
+elif sys.argv[1] == 'PROD':
+    logging.basicConfig(filename=f'{LOG_PATH}/wanderbot.log', filemode='a',level=logging.INFO,format='%(asctime)s - %(message)s')
+    TOKEN = API_TOKEN
+else:
+    print("Usage: python bot.py <PROD|DEV>")
+    exit(-1)
+
 client = discord.Client()
 
 l = logging.info # Me being lazy.
@@ -142,4 +155,4 @@ def reloadCommands():
     return
 
 
-client.run(API_TOKEN)
+client.run(TOKEN)
