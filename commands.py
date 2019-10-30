@@ -5,6 +5,7 @@ import const
 import logging
 import asyncio
 import re
+import math
 from beautifultable import BeautifulTable
 
 l = logging.info
@@ -253,16 +254,8 @@ async def link(message):
 #	ex. !find 3
 async def find(message):
 	l("Running 'find'")
-	charInfo = None
-	try:
-		parts = message.content.split(' ') #split on space first
-		prefix = parts[0]
-		charID = parts[1]
-	except IndexError:
-		return await message.channel.send(f"No ID supplied! Format should be `!find <character ID>`, example: `!find 2`")
-	charInfo = await db.getCharacterFromID(charID)
-	if not charInfo:
-		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+	charID = await parseCharID(message)
+	charInfo = await findUserFromID(charID)
 	return await message.channel.send(
 		f"Character ID: {charInfo['ID']}\n"
 		f"Character name: {charInfo['name']}\n"
@@ -394,68 +387,53 @@ async def joke(message):
 
 async def archive(message):
 	l("Running 'archive'")
-	try:
-		parts = message.content.split(' ') #split on space first
-		prefix = parts[0]
-		charID = parts[1]
-	except IndexError:
-		return await message.channel.send(f"No ID supplied! Format should be `!find <character ID>`, example: `!find 2`")
-	archived = await db.archive(charID)
+	charID = await parseCharID(message)
+	charInfo = await findUserFromID(charID)
+	archived = await db.archiveCharacterByID(charID)
 	if not archived:
-		return await message.channel.send(f"Could not archive a character with ID {charID}. Try again?")
-	charInfo = await db.getCharacterFromID(charID)
-	if not charInfo:
-		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+		return await message.channel.send(f"Character with ID {charID} is archived already!")
 	return await message.channel.send(
 		f"{charInfo['name']} is now sleeping ZzZz...\n")
 
 async def unarchive(message):
 	l("Running 'unarchive'")
-	try:
-		parts = message.content.split(' ') #split on space first
-		prefix = parts[0]
-		charID = parts[1]
-	except IndexError:
-		return await message.channel.send(f"No ID supplied! Format should be `!find <character ID>`, example: `!find 2`")
-	unarchived = await db.unarchive(charID)
+	charID = await parseCharID(message)
+	charInfo = await findUserFromID(charID)
+	unarchived = await db.unarchiveCharacterByID(charID)
 	if not unarchived:
-		return await message.channel.send(f"Could not archive a character with ID {charID}. Try again?")
-	charInfo = await db.getCharacterFromID(charID)
-	if not charInfo:
-		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+		return await message.channel.send(f"Character with ID {charID} is not archived, use !archived to see who is archived.")
 	return await message.channel.send(
 		f"{charInfo['name']} is now alive!\n")
 
 async def probation(message):
-	l("Running 'archive'")
-	probation = await db.probation()
+	l("Running 'probation'")
+	probation = await db.getCharactersOnProbation()
 	if not probation:
 		return await message.channel.send(f"Could not find any characters on probation. Woo!")
 
 	table = BeautifulTable()
-	table.column_headers = ["id", "Name", "On Probation?"]
+	table.column_headers = ["id", "Name"]
 	for char in probation:
 		i = char['ID']
 		name = char['name']
-		p = 'Yes' if int(char['on_probation']) else 'No'
-		table.append_row([i,name,p])
+		table.append_row([i,name])
 
 	header = f"** Here are the characters on probation :( **"
 	return await message.channel.send(f"{header}```{table}```")
 
 async def archived(message):
 	l("Running 'archived'")
-	archived = await db.archived()
+	archived = await db.getCharactersOnArchived()
 	if not archived:
-		return await message.channel.send(f"Could not find any characters on that are archived. Woo!")
+		return await message.channel.send(f"Could not find any characters that are archived. Woo!")
 
 	table = BeautifulTable()
-	table.column_headers = ["id", "Name", "archived"]
-	for char in archived:
+	table.column_headers = ["#", "id", "Name"]
+	for count, char in enumerate(archived):
+		num = count
 		i = char['ID']
 		name = char['name']
-		a = 'Yes' if int(char['archived']) else 'No'
-		table.append_row([i,name,a])
+		table.append_row([num,i,name])
 
 	header = f"** Here are the characters that are archived ...I mean asleep ZzZz **"
 	return await message.channel.send(f"{header}```{table}```")
@@ -488,6 +466,21 @@ async def getUserFromID(message,dID):
 		if user.id == int(dID):
 			return user
 	return None
+
+async def findUserFromID(charID):
+	charInfo = await db.getCharacterFromID(charID)
+	if not charInfo:
+		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
+	return charInfo
+
+async def parseCharID(message):
+	try:
+		parts = message.content.split(' ') #split on space first
+		prefix = parts[0]
+		charID = parts[1]
+	except IndexError:
+		return await message.channel.send(f"No ID supplied! Format should be `!<command> <character ID>`, example: `!find 2`")
+	return charID
 
 def isStaff(message):
 	if 'Robot' in [str(r) for r in message.author.roles]:

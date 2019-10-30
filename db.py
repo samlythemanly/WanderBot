@@ -60,26 +60,8 @@ async def getPlayerCharacters(playerID):
 		return res
 	return None
 
-async def archive(playerID):
-	sql = (f"UPDATE Characters SET archived = 1 WHERE ID = {playerID}")
-	cur.execute(sql)
-	res = cur.rowcount
-	db.commit()
-	if res:
-		return res
-	return None
-
-async def unarchive(playerID):
-	sql = (f"UPDATE Characters SET archived = 0 WHERE ID = {playerID}")
-	cur.execute(sql)
-	res = cur.rowcount
-	db.commit()
-	if res:
-		return res
-	return None
-
-async def probation():
-	sql = f'SELECT * from Characters where on_probation = 1'
+async def getCharactersOnProbation():
+	sql = f'SELECT ID, name from Characters where on_probation = 1'
 	cur.execute(sql)
 	res = cur.fetchall()
 	db.commit()
@@ -87,8 +69,8 @@ async def probation():
 		return res
 	return None
 
-async def archived():
-	sql = f'SELECT * from Characters where archived = 1'
+async def getCharactersOnArchived():
+	sql = f'SELECT ID, name from Characters where archived = 1'
 	cur.execute(sql)
 	res = cur.fetchall()
 	db.commit()
@@ -122,3 +104,23 @@ async def linkDiscordToPlayer(discordID, playerName):
 		cur.execute(sql)
 		db.commit()
 		return ("insert",cur.rowcount)
+
+async def archiveCharacterByID(playerID):
+	sql = (f"UPDATE Characters SET archived = 1 WHERE ID = {playerID}")
+	cur.execute(sql)
+	res = cur.rowcount
+	db.commit()
+	if res:
+		return res
+	else:
+		return None
+
+async def unarchiveCharacterByID(playerID):
+	sql = (f"UPDATE Characters SET archived = 0 WHERE ID = {playerID}")
+	cur.execute(sql)
+	res = cur.rowcount
+	db.commit()
+	if res:
+		return res
+	else:
+		return None
