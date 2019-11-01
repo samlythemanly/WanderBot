@@ -71,6 +71,7 @@ async def getCharactersOnProbation():
 
 async def getCharactersOnArchived():
 	sql = f'SELECT ID, name from Characters where archived = 1'
+	cur = db.cursor(dictionary=True)
 	cur.execute(sql)
 	res = cur.fetchall()
 	db.commit()
@@ -105,7 +106,7 @@ async def linkDiscordToPlayer(discordID, playerName):
 		db.commit()
 		return ("insert",cur.rowcount)
 
-async def archiveCharacterByID(playerID):
+async def archiveCharacterByID(characterID):
 	sql = (f"UPDATE Characters SET archived = 1 WHERE ID = {playerID}")
 	cur.execute(sql)
 	res = cur.rowcount
@@ -115,7 +116,7 @@ async def archiveCharacterByID(playerID):
 	else:
 		return None
 
-async def unarchiveCharacterByID(playerID):
+async def unarchiveCharacterByID(characterID):
 	sql = (f"UPDATE Characters SET archived = 0 WHERE ID = {playerID}")
 	cur.execute(sql)
 	res = cur.rowcount

@@ -427,16 +427,26 @@ async def archived(message):
 	if not archived:
 		return await message.channel.send(f"Could not find any characters that are archived. Woo!")
 
+	tables = 1 if (len(archived) < 10) else math.ceil(len(archived) // 10)
 	table = BeautifulTable()
-	table.column_headers = ["#", "id", "Name"]
-	for count, char in enumerate(archived):
-		num = count
-		i = char['ID']
-		name = char['name']
-		table.append_row([num,i,name])
-
-	header = f"** Here are the characters that are archived ...I mean asleep ZzZz **"
-	return await message.channel.send(f"{header}```{table}```")
+	table.column_headers = ["id", "Name"]
+	count = 0
+	while tables != 0:
+		table = BeautifulTable()
+		table.column_headers = ["id", "Name"]
+		while archived:
+			if count == 10:
+				count = 0
+				break
+			char = archived.pop(0)
+			i = char['ID']
+			name = char['name']
+			table.append_row([i,name])
+			count += 1
+		tables = tables - 1
+		header = f"** Here are the characters that are archived ...I mean asleep ZzZz **"
+		await message.channel.send(f"{header}```{table}```")
+	return
 
 #General debugging command, used by dev only
 async def debug(message):
