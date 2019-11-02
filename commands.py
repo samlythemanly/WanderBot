@@ -25,7 +25,7 @@ PRODUCTION_CHANNELS = [
 	'gushers',
 	'staff-has-fun-sometimes'
 	]
-TEST_CHANNELS = ['bot-test','feature-requests','temp']
+TEST_CHANNELS = ['bot-test','feature-requests','temp','staff-general']
 STAFF_CATEGORIES = ['Bot Playground',
 	'The Magic Treehouse'
 	]
@@ -76,17 +76,17 @@ COMMANDS = {
 	   			'channels': PRODUCTION_CHANNELS,
 	   			'hidden':True
 	   			},
+		'activity': {
+	   			'roles':[ROLES.ALL],
+	   			'channels':PRODUCTION_CHANNELS,
+	   			'hidden':False
+	   			},
 	# Admin / Mod commands 
 	   	'change_status':{
 				'roles':[ROLES.ADMIN,ROLES.MOD],
 				'channels':PRODUCTION_CHANNELS,
-				'hidden':False
+				'hidden':True
 				},
-		'activity': {
-	   			'roles':[ROLES.ADMIN],
-	   			'channels':TEST_CHANNELS,
-	   			'hidden':False
-	   			},
 	# Dev commands / in development commands
 		'favorite': {
 	   			'roles':[ROLES.DEV],
@@ -97,13 +97,13 @@ COMMANDS = {
 	   			'roles':[ROLES.ADMIN],
 	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
 	   			'channels':TEST_CHANNELS,
-	   			'hidden':False
+	   			'hidden':True
 	   			},
 	   	'find': {
 	   			'roles':[ROLES.ADMIN],
 	   			# 'roles':[ADMIN_ROLE,MOD_ROLE],
 	   			'channels':TEST_CHANNELS,
-	   			'hidden':False
+	   			'hidden':True
 	   			},
 	   	'reload': {
 				'roles':[ROLES.ADMIN],
@@ -126,7 +126,7 @@ COMMANDS = {
 				'hidden':True
 				},
 		'unarchive': {
-				'roles':[ROLES.DEV],
+				'roles':[ROLES.ADMIN],
 				'channels':TEST_CHANNELS,
 				'hidden':True
 				},
@@ -236,6 +236,7 @@ async def link(message):
 	# Okay let's go down the other path now (1), linked a discord ID to characters
 	charList = ' '.join(parts[2:]).replace(' ','').split(',')
 	rows_updated = await db.linkDiscordToCharacters(target.id,charList)
+	await db.initNewCharacter(charList)
 	if rows_updated > 0:
 		# We updated some rows, let's see what they are.
 		updated_chars = await db.getCharactersFromIDs(charList)
@@ -283,25 +284,34 @@ async def activity(message):
 	if not chars:
 		return await message.channel.send(f"Whelp, looks like I couldn't find any characters ¯\\_(ツ)_/¯")
 
+	paginator = []
 	table = BeautifulTable()
+	# Initiate a counter for pagination. We'll paginate on the fly. Max rows is 10.
+	counter = 0
 	table.column_headers = ["Character", "Total Posts", "Posts this month", "On Probation?"]
 	for char in chars:
+		counter += 1
 		n = char['name']
 		tp = char['total_posts']
 		tpm = char['posts_this_month']
 		p = 'Yes' if int(char['on_probation']) else 'No'
 		table.append_row([n,tp,tpm,p])
+		if counter == 10:
+			paginator.append(table)
+			table = BeautifulTable()
+			table.column_headers = ["Character", "Total Posts", "Posts this month", "On Probation?"]
+			counter = 0
+	paginator.append(table)
 
 	# return await message.author.send(f"```{table}```")
 
 	#Okay now we have all the info. Now we decide if we need to respond in the channel or PM the user.
 	if isStaff(message):
 		if str(message.channel.category) in STAFF_CATEGORIES:
-			header = f"** Here ya go! **"
-			return await message.channel.send(f"{header}\n```{table}```")
+			return await sendPaginatedTable(paginator, "Here ya go!", message.channel)
 	else:
-		header = f"** Hey {message.author.mention} here are your character's activities! **"
-		return await message.author.send(f"{header}```{table}```")
+		header = f"Hey {message.author.name} here are your character's activities!"
+		return await sendPaginatedTable(paginator, header, message.author)
 
 # Mock the last tagged user's message
 #	Pretty self explanitory
@@ -428,12 +438,11 @@ async def archived(message):
 		return await message.channel.send(f"Could not find any characters that are archived. Woo!")
 
 	table = BeautifulTable()
-	table.column_headers = ["#", "id", "Name"]
-	for count, char in enumerate(archived):
-		num = count
+	table.column_headers = ["id", "Name"]
+	for char in archived:
 		i = char['ID']
 		name = char['name']
-		table.append_row([num,i,name])
+		table.append_row([i,name])
 
 	header = f"** Here are the characters that are archived ...I mean asleep ZzZz **"
 	return await message.channel.send(f"{header}```{table}```")
@@ -481,6 +490,21 @@ async def parseCharID(message):
 	except IndexError:
 		return await message.channel.send(f"No ID supplied! Format should be `!<command> <character ID>`, example: `!find 2`")
 	return charID
+
+
+async def sendPaginatedTable(paginator, header, destination):
+	async with destination.typing():
+		# If there are less than 10 entries, just return the table
+		if len(paginator) < 2:
+			return await destination.send(f"** {header} **\n```{paginator[0]}```")
+		# Need to return multiple messages
+		header = f"** {header}\nPage 1/{len(paginator)}**"
+		await destination.send(f"{header}\n```{paginator[0]}```") #return the first page
+		ctr = 2
+		for table in paginator[1:]:
+			header = f"** Page {ctr}/{len(paginator)}**"
+			ctr += 1
+			await destination.send(f"{header}\n```{table}```") #return the next page
 
 def isStaff(message):
 	if 'Robot' in [str(r) for r in message.author.roles]:

@@ -89,6 +89,12 @@ async def linkDiscordToCharacters(discordID, characterIDs):
 	db.commit()
 	return cur.rowcount
 
+async def initNewCharacter(characterIDs):
+	sql = f"UPDATE Characters set on_probation=-1 WHERE ID in ({','.join(characterIDs)})"
+	cur.execute(sql)
+	db.commit()
+	return cur.rowcount
+
 async def linkDiscordToPlayer(discordID, playerName):
 	# First, see if this player already exists in the table
 	sql = f'SELECT * from Players where discordID={int(discordID)}'
