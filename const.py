@@ -33,6 +33,8 @@ ACTION_ENUM = {
         "WATCHING": 3
 }
 
+AUDIT_CHANNEL = 'wanderbots-void'
+
 COMPLIMENTS = [
         "I think you're beautiful <3",
         "you have nice teeth.",

@@ -1,7 +1,7 @@
 from importlib import reload ## DEBUGGING
 import random
 import db
-import const
+import const, audit
 import logging
 import asyncio
 import re
@@ -23,15 +23,15 @@ PRODUCTION_CHANNELS = [
 	'char-dev',
 	'iso',
 	'gushers',
-	'staff-has-fun-sometimes'
-	]
-TEST_CHANNELS = ['bot-test','feature-requests','temp','staff-general']
+	'staff-has-fun-sometimes',
+	'staff-general',
+	'wanderbots-void']
+TEST_CHANNELS = ['bot-test','feature-requests','temp','staff-general','wanderbots-void']
 STAFF_CATEGORIES = ['Bot Playground',
 	'The Magic Treehouse'
 	]
 SECRET_CHANNEL = ['temp']
 QUIDDITCH = ['the-field']
-
 ROLES=const.ROLES
 
 COMMANDS = {
@@ -229,9 +229,11 @@ async def link(message):
 		#whew okay let's keep going.
 		operation,row_count = await db.linkDiscordToPlayer(target.id, player_name)
 		if operation == 'update': # we updated their name
-			return await message.channel.send(f"Updated the name of ID {discordID} to {player_name}")
+			await message.channel.send(f"Updated the name of ID {discordID} to {player_name}")
+			return await logAuditEvent(message,'link player')
 		else:
-			return await message.channel.send(f"Linked ID {discordID} to player name: {player_name}")
+			await message.channel.send(f"Linked ID {discordID} to player name: {player_name}")
+			return await logAuditEvent(message,'link player')
 
 	# Okay let's go down the other path now (1), linked a discord ID to characters
 	charList = ' '.join(parts[2:]).replace(' ','').split(',')
@@ -245,7 +247,8 @@ async def link(message):
 			response = f"Linked {target.display_name} to the following character(s):"
 			for c in updated_chars:
 				response += f"\n- {c}"
-		return await message.channel.send(response)
+		await message.channel.send(response)
+		return await logAuditEvent(message,'link character')
 	else:
 		return await message.channel.send(f"Uh-oh. Something went wrong trying to link. Double-check the command and try again?")
 
@@ -262,11 +265,12 @@ async def find(message):
 		f"Character name: {charInfo['name']}\n"
 		f"Total posts: {charInfo['total_posts']}\n"
 		f"Posts this month: {charInfo['posts_this_month']}\n"
-		f"On probation? {'Yes' if int(charInfo['on_probation']) else 'No'}")
+		f"On probation? {'Yes' if int(charInfo['on_probation']) > 0 else 'No'}")
 
 # Activity Check
 #	Takes a player name and returns the status of all their characters.
 #	If it's Staff, then respond in that channel, if it's a normal user, PM them. 
+#	Additionally, delete the message if it's non-Staff, and log it in the wanderbots-void channel 
 #	ex. !activity Charles
 async def activity(message):
 	l("Running 'activity'")
@@ -294,7 +298,7 @@ async def activity(message):
 		n = char['name']
 		tp = char['total_posts']
 		tpm = char['posts_this_month']
-		p = 'Yes' if int(char['on_probation']) else 'No'
+		p = 'Yes' if int(char['on_probation']) > 0  else 'No'
 		table.append_row([n,tp,tpm,p])
 		if counter == 10:
 			paginator.append(table)
@@ -306,12 +310,18 @@ async def activity(message):
 	# return await message.author.send(f"```{table}```")
 
 	#Okay now we have all the info. Now we decide if we need to respond in the channel or PM the user.
-	if isStaff(message):
-		if str(message.channel.category) in STAFF_CATEGORIES:
-			return await sendPaginatedTable(paginator, "Here ya go!", message.channel)
+	if isStaff(message) and str(message.channel.category) in STAFF_CATEGORIES:
+		return await sendPaginatedTable(paginator, "Here ya go!", message.channel)
 	else:
-		header = f"Hey {message.author.name} here are your character's activities!"
-		return await sendPaginatedTable(paginator, header, message.author)
+		# This is going to get PM'd, so let's delete their message once we PM them.
+		header = f"Hey {message.author.name} here are your characters' activities!"
+		await sendPaginatedTable(paginator, header, message.author)
+		# Delete the message
+		await message.delete()
+		# log it in the wanderbots-void channel
+		return await logAuditEvent(message,'activity')
+
+
 
 # Mock the last tagged user's message
 #	Pretty self explanitory
@@ -402,8 +412,8 @@ async def archive(message):
 	archived = await db.archiveCharacterByID(charID)
 	if not archived:
 		return await message.channel.send(f"Character with ID {charID} is archived already!")
-	return await message.channel.send(
-		f"{charInfo['name']} is now sleeping ZzZz...\n")
+	await message.channel.send(f"{charInfo['name']} is now sleeping ZzZz...\n")
+	return await logAuditEvent(message,'archive')
 
 async def unarchive(message):
 	l("Running 'unarchive'")
@@ -412,8 +422,8 @@ async def unarchive(message):
 	unarchived = await db.unarchiveCharacterByID(charID)
 	if not unarchived:
 		return await message.channel.send(f"Character with ID {charID} is not archived, use !archived to see who is archived.")
-	return await message.channel.send(
-		f"{charInfo['name']} is now alive!\n")
+	await message.channel.send(f"{charInfo['name']} is now alive!\n")
+	return await logAuditEvent(message,'link')
 
 async def probation(message):
 	l("Running 'probation'")
@@ -505,6 +515,15 @@ async def sendPaginatedTable(paginator, header, destination):
 			header = f"** Page {ctr}/{len(paginator)}**"
 			ctr += 1
 			await destination.send(f"{header}\n```{table}```") #return the next page
+		return
+
+
+# We want to keep an audit log for all commands that cause updates to the Database.
+#	Also for user's activity checks
+async def logAuditEvent(message, command, destination):
+	for ch in message.guild.channels:
+			if str(ch) == const.AUDIT_CHANNEL:
+				return await ch.send(f"{message.author.name} called `{command}` in channel '{message.channel}'.")
 
 def isStaff(message):
 	if 'Robot' in [str(r) for r in message.author.roles]:
@@ -512,11 +531,12 @@ def isStaff(message):
 	# Check the user's role for this command.
 	staff_roles = [ROLES.ADMIN,ROLES.MOD]
 	for role in message.author.roles:
-		if role in staff_roles:
+		if str(role) in staff_roles:
 			return True
 	return False
 
 def reloadLibs():
 	reload(db)
 	reload(const)
+	reload(audit)
 	return

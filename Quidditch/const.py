@@ -9,6 +9,13 @@ ROLES = SimpleNamespace(**{
         'ALL':'all'
 })
 
+HOUSE = SimpleNamespace(**{
+        'SLYTHERIN':'slytherin',
+        'GRYFFINDOR':'gryffindor',
+        'RAVENCLAW':'ravenclaw',
+        'HUFFLEPUFF':"hufflepuff"
+})
+
 STATUS_LIST = ["WATCHING: A Quidditch Game!"
         ]
 ACTION_ENUM = {
@@ -18,4 +25,4 @@ ACTION_ENUM = {
         "WATCHING": 3
 }
 
-TRIGGER_SYMBOL = '\\'
+EMOJI_PREFIXES = ('<:Slytherin:','<:Ravenclaw:','<:Hufflepuff:','<:Gryffindor:')

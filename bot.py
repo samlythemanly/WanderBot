@@ -2,7 +2,7 @@ from importlib import reload ## DEBUGGING
 import const
 from private_info import API_TOKEN, TEST_TOKEN, BOT_ID, LOG_PATH
 import discord
-import commands
+import commands, audit
 import logging
 import random
 import sys
@@ -28,12 +28,10 @@ l = logging.info # Me being lazy.
 ##       TODO       ##
 ######################
 #    - DB engine
-#    - Quidditch commands
 #    - Help with individual commands
 #    - Fuzzy command helper?
 #    - More easter eggs?
-#    - Gambling?!
-#    - fuckin everything else
+#    - Gambling?
 
 favorite_user = None
 flagged_message = 0
@@ -92,6 +90,28 @@ async def on_reaction_add(reaction, user):
         global favorite_user
         favorite_user = user
         return
+
+# @client.event
+# async def on_message_delete(message):
+#     return await audit.logDeletedMessage(message,discord.AuditLogAction.message_delete)
+    # if a message was deleted, we should search the audit logs for it?
+    # Audit event: message_delete
+    # async for entry in guild.audit_logs(action=discord.AuditLogAction.message_delete):
+    #   print('{0.user} banned {0.target}'.format(entry))
+
+    # If a message gets deleted, we want to know who deleted it and what was the original message.
+    # If the message was deleted by someone other than the original author we need to look at the internal audit logs
+    # async for entry in message.guild.audit_logs(action=discord.AuditLogAction.message_delete):
+    #     print(entry.target)
+        # if entry.target.id == message.id:
+        #     print("found message")
+        #     return await message.channel.send(f"{target.user.name} just deleted the following message from {message.author.name}: {message.content}")
+
+
+# @client.event
+# async def on_message_edit(message_before, message_after):
+#     return await message.channel.send(f"{message.author.name} just edited their message from: `{message_before.content}` to: `{message_after.content}`")
+
 
 async def parseMessage(message):
     prefix = message.content.split(' ')[0][1:].lower() #Get the first word of the message without the symbol

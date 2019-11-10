@@ -42,15 +42,6 @@ class Action(object):
 			self.preparing = True
 		else:
 			self.current_cooldown = self.cooldown
-
-
-
-
-
-
-
-
-
 	'''
 	 All possible actions
 	 Actions can be one of three types:
