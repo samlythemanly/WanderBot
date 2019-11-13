@@ -20,24 +20,28 @@ l = logging.info # Me being lazy.
 
 favorite_user = None
 flagged_message = 0
-CHANNEL = ['the-field'] # Channels that QuidditchBot is not allowed in at all.
+GAME_CHANNEL = 'the-field' # Where the game will take place
+ADMIN_CHANNEL = "announcers-booth" # Allows Admins to interact with the bot (load players, end turn, etc...)
+ALLOWED_CHANNELS = [GAME_CHANNEL,ADMIN_CHANNEL]
 
 @client.event
 async def on_ready():
 	l('We have logged in as {0.user}'.format(client))
 	await set_status()
 	# For now, we're going to hard-code the players....
-	players = []
-	player1 = {	'name':"Bijan",
-				'discordID':318849064307523584,
-				'charID':1,
-				'jersey':0,
-				'house':"Ravenclaw",
-				'role':"chaser"}
-	players.append(player1)
+	# players = []
+	# player1 = {	'name':"Bijan",
+	# 			'charID':1,
+	# 			'house':"Ravenclaw",
+	# 			'role':"chaser"}
+	# 			'jersey':0,
+	# 			'discordID':318849064307523584,
+	# players.append(player1)
 	global GM
 	print("Initializing Game Manager...")
-	GM = GameManager.Game(players)
+	# Game manager Init. Set up players, custom objects, etc...
+	# TODO: Save inital state to DB. Or local file? 
+	GM = GameManager.Game()
 
 
 
@@ -50,6 +54,7 @@ Wait for a response from the GM, and decide what to do from there.
 '''
 @client.event
 async def on_message(message):
+	global GM
 	# If it's ourselves, ignore it
 	if message.author.bot:
 		return
@@ -59,7 +64,7 @@ async def on_message(message):
 		return # ignore for now.
 
 	# We only care about messages in specific channels
-	if str(message.channel) not in CHANNEL:
+	if str(message.channel) not in ALLOWED_CHANNELS:
 		return
 
 	if message.content.startswith('reload'):
@@ -69,10 +74,16 @@ async def on_message(message):
 	if message.content.startswith('die'):
 		exit()
 
+	if str(message.channel) == ADMIN_CHANNEL:
+		# Admin channel to load players
+		if message.content.startswith('!roster'):
+			with message.channel.typing():
+				await message.channel.send("Loading players, this may take a minute...")
+				return await runner.loadRoster(message, GM)
+
 	if message.content.startswith(const.EMOJI_PREFIXES):
 		# It's an emoji, but is it the correct emoji?
 		#TODO: validate the houses.
-		global GM
 		return await runner.newAction(message, GM)
 
 	#Finally, if none of the above conditions are met, just delete the message.

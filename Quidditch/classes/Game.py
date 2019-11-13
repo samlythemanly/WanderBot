@@ -1,6 +1,7 @@
 from classes.Ball import Ball
 from classes.Player import Player
 from classes.Action import Action
+import asyncio
 
 class Game(object):
 	"""
@@ -20,28 +21,28 @@ class Game(object):
 			- Clean up and get ready for the next turn. 
 	"""
 
-	def __init__(self, players):
-		self.players = self._init_players(players)
+	def __init__(self):
+		self.players = []
 		self.balls = self._init_balls()
 		# self.score = {teamA:0,teamB:0}
 		self.events = [] # keeps track of what is going on during each turn, to be resolved at the start of next turn
 		self.turn = 0 # start at turn 0
-		print(f"Inited Players {self.players}")
+		self.status = 0 # 0 is starting up, 1 is running.
+		self.state = 'Starting up. Waiting for Player Roster to be loaded.'
 
-	# Player is the discordID, action is a string, extras is a dict
+	# Player is the discordID, action is a string, extras is a dict (Jersey number?)
 
-	def addAction(self, playerID=None, action=None, extras=None):
+	def addAction(self, playerID=None, action=None, extras=None, team=team):
 		# For debugging only:
 		print(playerID,action,extras)
 		if action == 'end':
 			return self.endTurn() # fall-down into a bunch of stuff
-
-		player = self.getPlayerByDiscordID(playerID)
+		player = self.getPlayerByDiscordID(playerID,team)
 		if not player:
 			print("Could not find player")
 			return self.generateResponse(False,None) # Bad playerID
 		# A player has attempted to do something, let's make sure they can.
-		if not self.validateAction(player, action, extras):
+		if not self.validateAction(player, action, extras, team):
 			return self.generateResponse(False,None) # This is not allowed
 		# This player can do that action, let's save it for the next upkeep phase
 		event = (player,action,extras)
@@ -59,6 +60,7 @@ class Game(object):
 	#	- Announce results of previous turn
 	#	- [optional] Announce information about the Snitch.
 	def upkeep(self):
+		self.turn += 1 
 		action_log = [] # Human readable logs to summarize what happened
 		# Resolve events from previous turn
 		# 'hit' will always be resolved last
@@ -93,6 +95,9 @@ class Game(object):
 				action_log.append("The Quaffle is now free to be grabbed!")
 				ball = self.getBallByOwner(event[0].characterID)
 				ball.owner = None # lose possesion of the ball
+				# TODO: Handle the scoring event
+				# ...
+
 
 			## Will implement these later
 			# if event[1] == 'search':
@@ -104,6 +109,7 @@ class Game(object):
 			action_log.append(f"{event[0].name} hit's the Bludger towards {event[2].name}!")
 			ball = self.getBallByOwner(event[0].characterID)
 			ball.owner = None
+			# TODO: Handle the damage.
 
 		## TODO
 		# Now handle the modifiers
@@ -127,20 +133,45 @@ class Game(object):
 	#	- Is the player incapciated?
 	#	- Is that action on cooldown?
 	#	- Is this part of the action set for this player?
-	def validateAction(self, player, action, extras):
-		# Super simple validation for now....
-		return True
+	#	- If there are extra args, make sure they make sense.
+	def validateAction(self, player, action, extras, team):
+		# First, check if the player can run this action
+		if not player.hasAction(action):
+			return False
+		# Next, is the action on cooldown?
+		if player.isActionOnCooldown(action): # Returns True if there's a cooldown
+			print(f"Action {action} is on cooldown for {player.name}")
+			return False
+		### ACTIONS THAT REQUIRE SPECIAL POSESSION OF A BALL ###
+		# For 'pass' and 'shoot', make sure the player owns the quaffle
+		if action in ['pass','shoot']: 
+			q = self.getBallByName('quaffle')
+			if not q.owner == player.characterID:
+				return False
+		# If it's a 'hit' action, we need to make sure at least one bludger is open.
+		if action == 'hit':
+			bludgers = self.getBallByName('bludger')
+			for bludger in bludgers:
+				if bludger.owner is None:
+					bludger.owner = player.characterID
+					break
+			else: # yep. A for/else loop. This entire code is a dark mark on humanity.
+				print(f"{player.name} cannot use 'hit' because all bludgers are taken")
+				return False
+		# For 'grab', we need to make sure the quaffle is free.
+		if action == 'grab':
+			q = self.getBallByName('quaffle')
+			if q.owner:
+				print(f"{player.name} cannot grab the quaffle as it's not free")
+				return False
+		# Validate the extra args
+		if extras:
+			t_player = self.getPlayerByJersey(extras, team) #idk man. This should work?
+			if not t_player:
+				print(f"{player.name} tried to target an unknown player")
+				return False
 
 
-
-
-	def _init_players(self,raw_players):
-		print("  Initializing Player objects...")
-		players = []
-		for p in raw_players:
-			players.append(Player(name=p['name'], role=p['role'], number=p['jersey'], team=p['house'], characterID=p['charID'], discordID=p['discordID']))
-			print(players)
-		return players
 
 	def _init_balls(self):
 		print("  Initializing Ball objects...")
@@ -149,11 +180,11 @@ class Game(object):
 		balls.append(Ball("bludger"))
 		balls.append(Ball("bludger"))
 		balls.append(Ball("snitch"))
+		print("    Done.")
 		return balls
 
-
-	def ping(self):
-		return 'Pong!'
+	def getState(self):
+		return self.state
 
 	def getBallByOwner(self,characterID):
 		for ball in self.balls:
@@ -161,15 +192,28 @@ class Game(object):
 				return ball
 
 	def getBallByName(self, name):
+		t = []
 		for ball in self.balls:
 			if ball.name == name:
-				return ball
+				t.append(ball)
+		if len(t) == 1: # oh god this is horrible please help me.
+			return t[0]
+		else:
+			return t # If it's the bludger, return two balls
 
-	def getPlayerByDiscordID(self, discID):
+	def getPlayerByDiscordID(self, discID, team):
 		print("looking for:",discID)
 		for player in self.players:
-			print(f"Inside find player by discID: {player.discordID}")
-			if player.discordID == discID:
+			if player.discordID == discID and player.team.lower() == team.lower():
+				print(f"Found {player.name}")
+				return player
+		return None
+
+	def getPlayerByJersey(self, jerseyNumber, team):
+		print("looking for:",jerseyNumber)
+		for player in self.players:
+			if player.jersey == jerseyNumber and player.team.lower() == team.lower():
+				print(f"Found {player.name}")
 				return player
 		return None
 
@@ -178,3 +222,30 @@ class Game(object):
 		response['status'] = status
 		response['extras'] = extras
 		return response
+
+	def addPlayers(self, raw_players):
+		print("  Initializing Player objects...")
+		players = []
+		for p in raw_players:
+			new_player = Player(name=p['name'], 
+						role=p['role'], 
+						number=p['jersey'], 
+						team=p['house'], 
+						characterID=p['charID'],
+						stats=p['stats'],
+						discordID=p['discordID'])
+			players.append(new_player)
+			print(f"    Added: {new_player}")
+		print(f"    Done.")
+		if len(players) == 14:
+			self.players = players
+			self.status = 'Players loaded, ready to play!'
+		else:
+			return self.generateResponse(False,{'error':'Not enough players loaded'})
+		return self.generateResponse(True, None)
+
+	# We need a way to summarize everything happening in the game right now
+	# Who are the players on each team, who has the balls, what's the score.
+	# TODO
+	def getCurrentState(self):
+		pass

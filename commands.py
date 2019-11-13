@@ -416,6 +416,7 @@ async def archive(message):
 	return await logAuditEvent(message,'archive')
 
 async def unarchive(message):
+	# TODO: When a character is un-archived, set probation to True
 	l("Running 'unarchive'")
 	charID = await parseCharID(message)
 	charInfo = await findUserFromID(charID)

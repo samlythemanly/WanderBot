@@ -6,9 +6,10 @@ class Ball(object):
 		- (3) Snitch """
 	def __init__(self, name=None):
 		self.name = name
-		self.owner = None # Owner is the player who possesses the ball
-		self.value = 0 # Point value of the ball
-		self.collidable = False # Can this ball hit other players
+		self.owner = None # Owner is the player who possesses the ball (characterID)
+
+	def __str__(self):
+		return f"Ball: {self.name} | Owner: {self.owner}"
 
 	# Set up internal variables for a Quaffle
 	# def makeQuaffle(self):

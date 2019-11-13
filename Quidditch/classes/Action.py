@@ -1,12 +1,11 @@
 class Action(object):
 	"""docstring for Action"""
-	def __init__(self, name,roles=['seeker','chaser','beater','keeper'],cooldown=0,type='normal',duration=0):
+	def __init__(self, name,cooldown=0,t='normal',duration=0):
 		self.name = name
-		self.roles = roles
-		self.cooldown = cooldown
+		# self.roles = roles # maybe don't need this.
+		self.cooldown = cooldown # how many turns until this action can be used again
 		self.type = t
-		self.duration = duration
-
+		self.duration = duration # How long this action lasts/triggers it's effect
 		self.current_cooldown = 0 # Counts down from cooldown before it can used again
 		self.current_step = 0 # Counts up to duration before executed
 		self.preparing = False # What's the state of the action?
@@ -42,6 +41,11 @@ class Action(object):
 			self.preparing = True
 		else:
 			self.current_cooldown = self.cooldown
+
+	def __str__(self):
+		return f"{self.name} | Cooldown remaining: {self.current_cooldown}"
+
+
 	'''
 	 All possible actions
 	 Actions can be one of three types:
@@ -50,7 +54,7 @@ class Action(object):
 	 	3. Prepared - Multi-turn action, requires special logic as it spans multiple turns (duration)
 	 Actions have cooldowns -- number of turns before that action can be used again.
 	 	- For 'prepared' actions, the cooldown starts after the action fully resolves, or is cancelled.
-	'''
+	
 	ACTIONS = {
 		# Seeker attempts to catch the Snitch
 		"Catch": {
@@ -124,3 +128,4 @@ class Action(object):
 		}
 
 	}
+'''
