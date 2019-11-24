@@ -14,8 +14,6 @@ import db
 Runner is an intermediate module for communicating with the Game Manager (GM)
 
 '''
-
-
 async def newAction(message, GM):
 	# So it's an action. Let's figure out what team it's for
 	if not GM:
@@ -34,27 +32,43 @@ async def newAction(message, GM):
 	# What else does the game manager want?
 	# We should be nice and parse the action and addition args as well
 	parts = message.content.split(' ')[1:] # skip the emoji we already know it
+
+	### BEGIN DEBUGGING
+	fake_discordID = GM.getPlayerDiscordIDByCharID(int(parts[0])) # We will pass in the characterID of who we're trying to be.
+	if not fake_discordID:
+		print(f"Debugging: Could not find discordID for {parts[0]}")
+		return #?
+	parts = parts[1:]
+	print(f"Debugging: Found discordID for {parts[0]}")
+	### END DEBUGGING
+
 	action = parts[0] # what are they trying to do?
 	if len(parts) > 1: 
-		# There's extra stuff
-		extras = parts[1] # The human players will be going off JERSY numbers, not charIDs. 
+		# There's an extra argument (target_player)
+		try:
+			t_player = int(parts[1]) # The human players will be going off JERSY numbers, not charIDs. 
+		except ValueError:
+			print(f"Message: `{parts}` failed integer parsing for target_player")
+			return await message.delete()
 	else:
-		extras = None
+		t_player = None
 
 	#We also need to know information on who sent the message.
-	player_id = message.author.id
+	# author_id = message.author.id
 	response = GM.addAction(
-					playerID=player_id, 
+					discordID=fake_discordID, 
 					team=player_team,
 					action=action,
-					extras=extras)
+					t_player=t_player)
+	print(f"**Response: {response}")
 	# Check results:
 	#	response['status'] is boolean if the command was valid or not
 	#	response['extras'] is populated if the command caused the turn to be over.
 	if not response['status']:
 		return await message.delete()
-	await message.channel.send(f"Accepted command: {action}")
+	await message.channel.send(f"Accepted command: `{message.content}`")
 	if response['extras']:
+		update_log = '\n- '+'\n- '.join(response['extras']['action_log'])
 		return await message.channel.send('\n- '.join(response['extras']['action_log']))
 
 	return
@@ -83,25 +97,43 @@ async def loadRoster(message,GM):
 				print(f"Error on characterID: {l[1]}")
 			player = {
 				'name':l[0],
-				'charID':l[1],
-				'house':l[2],
-				'role':l[3],
-				'jersey':l[4],
+				'charID':int(l[1]),
+				'house':validateHouse(l[2]),
+				'role':l[3].lower(),
+				'jersey':int(l[4]),
 				'stats':[int(s) for s in l[5:]],
 				'discordID':discordID
 				}
 			players.append(player)
 	except IndexError:
-		return message.channel.send(f"Something went wrong trying to parse the message. Try again?")
-
+		await message.channel.send(f"Something went wrong trying to parse the message. Try again?")
+		return False
 	# Call the GameManager to load the players.
 	response = GM.addPlayers(players)
 	if response['status']:
-		return await message.channel.send(f"Successfully loaded all players! Ready to play :D")
+		# await message.channel.send(f"Successfully loaded all players.")
+		return True
 	else:
 		await message.channel.send(f"Error: {response['extras']['error']}")
+		return False
+
+# We will be creating a scoreboard message which the Game Manager will keep track of.
+async def createScoreboard(message, game_channel):
+	return True
+
+	
 
 
+
+def validateHouse(house):
+	if house.lower() == 'slytherin':
+		return const.HOUSE.SLYTHERIN
+	elif house.lower() == 'ravenclaw':
+		return const.HOUSE.RAVENCLAW
+	elif house.lower() == 'gryffindor':
+		return const.HOUSE.GRYFFINDOR
+	else:
+		return const.HOUSE.HUFFLEPUFF
 
 def reloadLibs():
 	reload(const)

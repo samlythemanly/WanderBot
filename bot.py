@@ -1,11 +1,12 @@
 from importlib import reload ## DEBUGGING
+import asyncio
 import const
 from private_info import API_TOKEN, TEST_TOKEN, BOT_ID, LOG_PATH
 import discord
 import commands, audit
 import logging
 import random
-import sys
+import os, sys, signal, subprocess # Oh yes, we're going to do some super weird stuff.
 
 if len(sys.argv) < 2:
     print("Usage: python bot.py <PROD|DEV>")
@@ -27,15 +28,15 @@ l = logging.info # Me being lazy.
 ######################
 ##       TODO       ##
 ######################
-#    - DB engine
 #    - Help with individual commands
 #    - Fuzzy command helper?
 #    - More easter eggs?
-#    - Gambling?
 
 favorite_user = None
 flagged_message = 0
-CHANNEL_BLACKLIST = ['the-lobby'] # Channels that WanderBot is not allowed in at all.
+CHANNEL_BLACKLIST = ['the-lobby','the-field','announcers-booth'] # Channels that WanderBot is not allowed in at all.
+q_proc = None # QuidditchBot PID, if needed
+
 
 @client.event
 async def on_ready():
@@ -61,9 +62,10 @@ async def on_message(message):
     # So there's a message in a text channel that we care about.
     # Let's see if someone is trying to talk to the bot
     if message.content.startswith(const.TRIGGER_SYMBOL):
+        if message.content.startswith(const.TRIGGER_SYMBOL*2): # Sometimes someone will just type a message that is '!!!!' so we ignore those
+            return
         # Yep. What the fuck do they want.
         return await parseMessage(message)
-
        # Let's get the easter eggs out of the way...
        # We only do this if they're not trying to write a command.
     else:
@@ -91,26 +93,20 @@ async def on_reaction_add(reaction, user):
         favorite_user = user
         return
 
-# @client.event
-# async def on_message_delete(message):
-#     return await audit.logDeletedMessage(message,discord.AuditLogAction.message_delete)
-    # if a message was deleted, we should search the audit logs for it?
-    # Audit event: message_delete
-    # async for entry in guild.audit_logs(action=discord.AuditLogAction.message_delete):
-    #   print('{0.user} banned {0.target}'.format(entry))
-
-    # If a message gets deleted, we want to know who deleted it and what was the original message.
-    # If the message was deleted by someone other than the original author we need to look at the internal audit logs
-    # async for entry in message.guild.audit_logs(action=discord.AuditLogAction.message_delete):
-    #     print(entry.target)
-        # if entry.target.id == message.id:
-        #     print("found message")
-        #     return await message.channel.send(f"{target.user.name} just deleted the following message from {message.author.name}: {message.content}")
+@client.event
+async def on_message_delete(message):
+    if message.author.bot or str(message.channel) in CHANNEL_BLACKLIST:
+        return
+    return await getAuditChannel(message).send(f"{'-'*20}\nA message was deleted in `{str(message.channel)}`:\nOriginal Author: `{message.author}`\nMessage: `{message.content}`\n(The original author might not have been the one to delete this message, check Discord's Audit Log for more info)")
 
 
-# @client.event
-# async def on_message_edit(message_before, message_after):
-#     return await message.channel.send(f"{message.author.name} just edited their message from: `{message_before.content}` to: `{message_after.content}`")
+
+# Audit log any edited messages. We're not going to track who deleted messages because the Discord Audit Log already does that.
+@client.event
+async def on_message_edit(message_before, message_after):
+    if message_before.author.bot or str(message.channel) in CHANNEL_BLACKLIST:
+        return
+    return await getAuditChannel(message_before).send(f"{'-'*20}\n{message_before.author.name} just edited their message in channel: `{str(message_before.channel)}`:\nBefore: `{message_before.content}`\nAfter: `{message_after.content}`")
 
 
 async def parseMessage(message):
@@ -139,6 +135,10 @@ async def parseMessage(message):
         if prefix == 'change_status':
             l("Changing status")
             return await change_status()
+        if prefix.lower() == 'quidditch':
+            return await initQuidditchBot(message)
+        if prefix.lower() == 'end_quidditch':
+            return await teardownQuidditchBot(message)
         # Okay, pass control to the commands module.
         l(f"Authorized user {message.author} to run {prefix}. Executing.")
         return await commands.runner(prefix,message)
@@ -168,11 +168,67 @@ async def change_status():
     l(f"New Activity: {new_status}")
     await client.change_presence(activity=activity)
 
+def getAuditChannel(message):
+    for ch in message.guild.channels:
+            if str(ch) == const.AUDIT_CHANNEL:
+                return ch
+
 # Hot-reloading libs - FOR DEBUGGING ONLY 
 def reloadCommands():
     reload(commands)
     commands.reloadLibs()
     return
+
+async def initQuidditchBot(message): 
+    await message.channel.send(f"Are you sure you want to start QuidditchBot? Respond `yes` or `no`")
+    def confirmation(m):
+        return m.author == message.author
+    try:
+        response = await client.wait_for('message', check=confirmation, timeout=5.0)
+    except asyncio.TimeoutError:
+        return await message.channel.send("Sorry, I didn't get a response in time. Not launching QuidditchBot.")
+
+    if response.content.lower() == 'no':
+        return await message.channel.send("Not launching QuidditchBot.")
+    if response.content.lower() == 'yes':
+        await message.channel.send("Okay! Launching QuidditchBot....")
+        # loop = asyncio.ProactorEventLoop()
+        # asyncio.set_event_loop(loop)
+        # # QuidditchBot is an entirely other python program, so we're going to manage it from here.
+        # print(f"{sys.executable} ./Quidditch/quidditch.py")
+        # p = await asyncio.create_subprocess_shell(
+        #     f"{sys.executable} ./Quidditch/quidditch.py",
+        #     stdout=asyncio.subprocess.PIPE,
+        #     stderr=asyncio.subprocess.PIPE)
+        # stdout, stderr = await p.communicate()
+        # if stdout:
+        #     print(f'[stdout]\n{stdout.decode()}')
+        # if stderr:
+        #     print(f'[stderr]\n{stderr.decode()}')
+        p = subprocess.Popen([sys.executable, './Quidditch/quidditch.py'], 
+                                    stdout=subprocess.PIPE, 
+                                    stderr=subprocess.STDOUT)
+        global q_proc
+        q_proc = p.pid
+        
+async def teardownQuidditchBot(message):
+    global q_proc
+    if not q_proc:
+        return await message.channel.send(f"QuidditchBot is not currently active! You can start it by calling `!quidditch`.")
+    await message.channel.send(f"Are you sure you want to end QuidditchBot? *THIS WILL END THE CURRENT GAME, AND DISCARD ALL INFO* Respond `yes` or `no`")
+    def confirmation(m):
+        return m.author == message.author
+    try:
+        response = await client.wait_for('message', check=confirmation, timeout=5.0)
+    except asyncio.TimeoutError:
+        return await message.channel.send("Sorry, I didn't get a response in time. Not ending QuidditchBot.")
+
+    if response.content.lower() == 'no':
+        return await message.channel.send("Not ending QuidditchBot.")
+    if response.content.lower() == 'yes':
+        await message.channel.send("Good game!!! Ending QuidditchBot....")
+        os.kill(q_proc,signal.SIGTERM)
+
 
 
 client.run(TOKEN)

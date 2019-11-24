@@ -17,6 +17,8 @@ l = logging.info # Me being lazy.
 ##   TODO   ##
 ######################
 #   - Quidditch commands
+#	- Better log statements for what's going on (convert all prints to logs)
+#	- Logging on deleted statements?
 
 favorite_user = None
 flagged_message = 0
@@ -26,7 +28,7 @@ ALLOWED_CHANNELS = [GAME_CHANNEL,ADMIN_CHANNEL]
 
 @client.event
 async def on_ready():
-	l('We have logged in as {0.user}'.format(client))
+	print('We have logged in as {0.user}'.format(client))
 	await set_status()
 	# For now, we're going to hard-code the players....
 	# players = []
@@ -67,23 +69,43 @@ async def on_message(message):
 	if str(message.channel) not in ALLOWED_CHANNELS:
 		return
 
+	### DEBUGGING
 	if message.content.startswith('reload'):
 		reloadCommands()
 		return await message.channel.send("Gotcha boss! 👍")
-
 	if message.content.startswith('die'):
+		print("Dying!")
 		exit()
+	###END DEBUGGING
 
 	if str(message.channel) == ADMIN_CHANNEL:
 		# Admin channel to load players
 		if message.content.startswith('!roster'):
 			with message.channel.typing():
-				await message.channel.send("Loading players, this may take a minute...")
-				return await runner.loadRoster(message, GM)
+				await message.channel.send("Initializing QuidditchBot!")
+
+				purge_message = await message.channel.send("Purging all messages in `#the-field`...")
+				await purgeTheField(message)
+				await purge_message.edit(content=purge_message.content+" Done!")
+				
+				create_player_message = await message.channel.send("Loading players, this may take a minute...")
+				res = await runner.loadRoster(message, GM)
+				if not res:
+					return
+				await create_player_message.edit(content=create_player_message.content + " Done!")
+				
+				scoreboard_message = await message.channel.send("Creating scoreboard and pinning it...")
+				await runner.createScoreboard(message,GAME_CHANNEL)
+				await scoreboard_message.edit(content=scoreboard_message.content + " Done!")
+
+				return await message.channel.send("---------------\nSuccessfully loaded QuidditchBot. Ready to play!!")
+		else:
+			return
 
 	if message.content.startswith(const.EMOJI_PREFIXES):
 		# It's an emoji, but is it the correct emoji?
 		#TODO: validate the houses.
+		print(f"New message: {message.content}")
 		return await runner.newAction(message, GM)
 
 	#Finally, if none of the above conditions are met, just delete the message.
@@ -112,11 +134,20 @@ async def set_status():
 	l(f"New Activity: {new_status}")
 	await client.change_presence(activity=activity)
 
+
+#This function will delete ALL messages in GAME_CHANNEL so we can start anew.
+async def purgeTheField(message):
+	for ch in message.guild.channels:
+			if str(ch) == GAME_CHANNEL:
+				print(f"Deleting all messages in #{ch}")
+				deleted_messages = await ch.purge(limit=1000)
+				print(f"Deleted {len(deleted_messages)} messages!")
+
+
 # Hot-reloading libs - FOR DEBUGGING ONLY 
 def reloadCommands():
 	reload(runner)
 	runner.reloadLibs()
 	return
-
 
 client.run(API_TOKEN)

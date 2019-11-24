@@ -135,6 +135,17 @@ COMMANDS = {
 				'channels':TEST_CHANNELS,
 				'hidden':True
 				},
+	# Special commands for Quidditch!
+		'quidditch': {
+				'roles':[ROLES.DEV],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
+		'end_quidditch': {
+				'roles':[ROLES.DEV],
+				'channels':TEST_CHANNELS,
+				'hidden':True
+				},
 }
 
 
@@ -305,7 +316,8 @@ async def activity(message):
 			table = BeautifulTable()
 			table.column_headers = ["Character", "Total Posts", "Posts this month", "On Probation?"]
 			counter = 0
-	paginator.append(table)
+	if len(table) > 0:
+		paginator.append(table)
 
 	# return await message.author.send(f"```{table}```")
 
@@ -521,10 +533,10 @@ async def sendPaginatedTable(paginator, header, destination):
 
 # We want to keep an audit log for all commands that cause updates to the Database.
 #	Also for user's activity checks
-async def logAuditEvent(message, command, destination):
+async def logAuditEvent(message, command):
 	for ch in message.guild.channels:
 			if str(ch) == const.AUDIT_CHANNEL:
-				return await ch.send(f"{message.author.name} called `{command}` in channel '{message.channel}'.")
+				return await ch.send(f"{'-'*20}\n{message.author.name} called `{command}` in channel '{message.channel}'.")
 
 def isStaff(message):
 	if 'Robot' in [str(r) for r in message.author.roles]:

@@ -30,27 +30,37 @@ class Game(object):
 		self.status = 0 # 0 is starting up, 1 is running.
 		self.state = 'Starting up. Waiting for Player Roster to be loaded.'
 
-	# Player is the discordID, action is a string, extras is a dict (Jersey number?)
-
-	def addAction(self, playerID=None, action=None, extras=None, team=team):
+	# discordID is the author ID, action is a string, t_player is the target player (if applicable)
+	def addAction(self, discordID=None, action=None, t_player=None, team=None):
 		# For debugging only:
-		print(playerID,action,extras)
+		print(discordID,action,t_player)
 		if action == 'end':
 			return self.endTurn() # fall-down into a bunch of stuff
-		player = self.getPlayerByDiscordID(playerID,team)
+
+		# We want to convert the discordID to our player object as soon as we can.
+		# It's easier to work with, and has more info
+		player = self.getPlayerByDiscordID(discordID,team)
 		if not player:
 			print("Could not find player")
-			return self.generateResponse(False,None) # Bad playerID
+			return self.generateResponse(success=False,extras=None) # Bad discordID
 		# A player has attempted to do something, let's make sure they can.
-		if not self.validateAction(player, action, extras, team):
-			return self.generateResponse(False,None) # This is not allowed
+		if not self.validateAction(player, action, t_player, team):
+			return self.generateResponse(success=False,extras=None) # This is not allowed
+
+		# The action has been validated, so we can assume that if there is a target player, it's valid.
+		# We want to pass the target player object into the events array.
+		if t_player:
+			# Is this an aggressive or friendly action?
+			ownTeam = False if action in ['hit'] else True
+			t_player = self.getPlayerByJersey(player,t_player,ownTeam=ownTeam)
+
 		# This player can do that action, let's save it for the next upkeep phase
-		event = (player,action,extras)
+		event = (player,action,t_player)
 		# if action.type == 'instant':
 		# 	self.events.append(event)
 		# 	return self.endTurn() # fall-down into a bunch of stuff
 		self.events.append(event)
-		return self.generateResponse(True,None) # Successful, and did not trigger anything
+		return self.generateResponse(success=True,extras=None) # Successful, and did not trigger anything
 
 	# TODO
 	# UPKEEP PHASE:
@@ -69,8 +79,10 @@ class Game(object):
 		for event in self.events:
 			# Okay let's handle each command...
 			if event[1] == 'hit':
-				hits.append(event)
+				hits.append(event) # We'll deal with this after the loop. Hit's are calculated last
 				continue
+
+			# resolve 'grab' action
 			if event[1] == 'grab':
 				if quaffle_caught:
 					continue
@@ -83,12 +95,16 @@ class Game(object):
 						quaffle_caught = True # speed this up the next time the loop runs
 						action_log.append(f"{event[0].name} has caught the Quaffle!")
 				pass
+
+			# Resolve 'pass' action
 			if event[1] == 'pass':
 				# Now we're assuming that during validation, we made sure the player is holding the Quaffle.
 				ball = self.getBallByOwner(event[0].characterID)
 				# found the ball. let's change the owners now
 				ball.owner = event[2].characterID
 				action_log.append(f"{event[0].name} passed the Quaffle to {event[2].name}!")
+
+			# Resolve 'shoot' action
 			if event[1] == 'shoot':
 				# Again, the assumption here is that this event is valid, and the player owns the quaffle
 				action_log.append(f"{event[0].name} shoots the Quaffle towards the goal posts!")
@@ -116,7 +132,7 @@ class Game(object):
 
 		# Return the results
 		extras = {'action_log':action_log}
-		return self.generateResponse(True,extras)
+		return self.generateResponse(success=True,extras=extras)
 
 
 
@@ -129,47 +145,55 @@ class Game(object):
 
 	# TODO
 	# In order to validate the action we need to check a few things:
-	#	- If the action involves a ball, can the player be in possesion of it, and is the ball free?
+	#	✔ If the action involves a ball, can the player be in possesion of it, and is the ball free?
 	#	- Is the player incapciated?
 	#	- Is that action on cooldown?
 	#	- Is this part of the action set for this player?
 	#	- If there are extra args, make sure they make sense.
-	def validateAction(self, player, action, extras, team):
-		# First, check if the player can run this action
-		if not player.hasAction(action):
+	def validateAction(self, player, action, t_player, team):
+		# First, check if the player can run this action and that's not on cooldown (using 'or' because of short-circut)
+		if not player.hasAction(action) or player.isActionOnCooldown(action):
+			print(f"{player.name} cannot do that because they either don't have the action or it's on cooldown")
 			return False
-		# Next, is the action on cooldown?
-		if player.isActionOnCooldown(action): # Returns True if there's a cooldown
-			print(f"Action {action} is on cooldown for {player.name}")
-			return False
+
 		### ACTIONS THAT REQUIRE SPECIAL POSESSION OF A BALL ###
-		# For 'pass' and 'shoot', make sure the player owns the quaffle
-		if action in ['pass','shoot']: 
+		# For 'pass' and 'shoot', make sure the player owns the quaffle, and the target is on the same team (if applicable)
+		if action in ['pass','shoot']:
 			q = self.getBallByName('quaffle')
-			if not q.owner == player.characterID:
+			# Short-circut the 'or' operator, then check for valid target_player for the pass command.
+			target_player = self.getPlayerByJersey(player,t_player,ownTeam=True)
+			if (q.owner != player.characterID) or ((action == 'pass') and not target_player):
+				print(f"Could not validate {action} due to either not having possesion of the Quaffle, or a bad target player.")
 				return False
+			if target_player.role not in ['keeper','chaser']:
+				print("Target player is not a keeper or chaser, and can't be passed to")
+				return False
+
 		# If it's a 'hit' action, we need to make sure at least one bludger is open.
 		if action == 'hit':
+			# Let's make sure that the target they're trying to hit is valid
+			if not self.getPlayerByJersey(player, t_player, ownTeam=False):
+				print(f"Could not find a valid player to hit")
+				return False
 			bludgers = self.getBallByName('bludger')
 			for bludger in bludgers:
 				if bludger.owner is None:
+					# we have a free bludger, so let's assign it to this player
 					bludger.owner = player.characterID
-					break
+					break # Don't need to find another, and breaking will skip the else block
 			else: # yep. A for/else loop. This entire code is a dark mark on humanity.
 				print(f"{player.name} cannot use 'hit' because all bludgers are taken")
 				return False
+
 		# For 'grab', we need to make sure the quaffle is free.
 		if action == 'grab':
 			q = self.getBallByName('quaffle')
 			if q.owner:
 				print(f"{player.name} cannot grab the quaffle as it's not free")
 				return False
-		# Validate the extra args
-		if extras:
-			t_player = self.getPlayerByJersey(extras, team) #idk man. This should work?
-			if not t_player:
-				print(f"{player.name} tried to target an unknown player")
-				return False
+
+		# If none of the above cases cause a failure, we can finally return a success.
+		return True
 
 
 
@@ -209,17 +233,33 @@ class Game(object):
 				return player
 		return None
 
-	def getPlayerByJersey(self, jerseyNumber, team):
-		print("looking for:",jerseyNumber)
+	# Currently used for debugging. Might remove or refactor later
+	def getPlayerDiscordIDByCharID(self, charID):
+		print(f"CharacterID Lookup for {charID}")
 		for player in self.players:
-			if player.jersey == jerseyNumber and player.team.lower() == team.lower():
-				print(f"Found {player.name}")
-				return player
+			print(f"Looking at {player.name} with ID: {player.characterID}")
+			if player.characterID == charID:
+				return player.discordID
 		return None
 
-	def generateResponse(self, status, extras):
+	# Since a jersey number is only unique within a team, we need to know on which team we're looking.
+	# So we'll pass in the current player object as a team reference
+	# ownTeam will say whether to look within this team or the opposing team
+	def getPlayerByJersey(self, player, t_jersey, ownTeam=True):
+		if not t_jersey:
+			return None
+		print("looking for:",t_jersey)
+		for p in self.players:
+			# We get to do a fun XNOR! We always need the jersey number to match, so it's first.
+			if p.jersey == t_jersey and ( (player.team.lower() == p.team.lower() ) == ownTeam): # XNOR(teamMatch, ownTeam)
+				print(f"Found {p.name}")
+				return p
+		print(f"Could not find a match for {t_jersey} with ownTeam set to {ownTeam}")
+		return None
+
+	def generateResponse(self, success=False, extras=None):
 		response = {}
-		response['status'] = status
+		response['status'] = success
 		response['extras'] = extras
 		return response
 
@@ -241,8 +281,8 @@ class Game(object):
 			self.players = players
 			self.status = 'Players loaded, ready to play!'
 		else:
-			return self.generateResponse(False,{'error':'Not enough players loaded'})
-		return self.generateResponse(True, None)
+			return self.generateResponse(success=False,extras={'error':'Not enough players loaded'})
+		return self.generateResponse(success=True,extras= None)
 
 	# We need a way to summarize everything happening in the game right now
 	# Who are the players on each team, who has the balls, what's the score.
