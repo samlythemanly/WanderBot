@@ -2,16 +2,21 @@
 Database Query Engine for QuidditchBot
 	Handles all DB interactions - Simplified.
 '''
-import mysql.connector
-import asyncio
+import os
+from pathlib import Path  # python3 only
 from functools import wraps
-from private_info import DB_HOST, DB_USER, DB_PASSWORD, DB_CATALOG
+
+from dotenv import load_dotenv
+import mysql.connector
+
+env_path = Path('..') / '.env'
+load_dotenv(dotenv_path=env_path)
 
 db = mysql.connector.connect(
-	host=DB_HOST,
-	user=DB_USER,
-	passwd=DB_PASSWORD,
-	database=DB_CATALOG
+	host=os.getenv("DB_HOST"),
+	user=os.getenv("DB_USER"),
+	passwd=os.getenv("DB_PASSWORD"),
+	database=os.getenv("DB_CATALOG")
 )
 
 cur = db.cursor(dictionary=True, buffered=True)
