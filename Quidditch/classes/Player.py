@@ -1,5 +1,5 @@
-from classes.Action import Action
-import db
+from .Action import Action
+import wanderbot.db.quid_db as db
 
 class Player(object):
 	"""docstring for Player"""

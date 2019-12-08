@@ -1,11 +1,10 @@
 from importlib import reload ## DEBUGGING
 import random
-import db
+from .db import db
 import const, audit
 import logging
 import asyncio
 import re
-import math
 from beautifultable import BeautifulTable
 
 l = logging.info

@@ -6,8 +6,7 @@ import re
 import math
 import classes.Game
 from beautifultable import BeautifulTable
-import db
-
+from wanderbot.db import quid_db as db
 
 '''
 
@@ -120,9 +119,6 @@ async def loadRoster(message,GM):
 # We will be creating a scoreboard message which the Game Manager will keep track of.
 async def createScoreboard(message, game_channel):
 	return True
-
-	
-
 
 
 def validateHouse(house):

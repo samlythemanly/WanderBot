@@ -2,6 +2,7 @@
 Database Query Engine for QuidditchBot
 	Handles all DB interactions - Simplified.
 '''
+
 import os
 from pathlib import Path  # python3 only
 from functools import wraps
