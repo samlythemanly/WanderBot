@@ -1,14 +1,11 @@
 from importlib import reload ## DEBUGGING
 import datetime
-import db
-import const
+from .db import db
 import logging
 import asyncio
 from pprint import pprint
 
 l = logging.info
-
-
 
 # If a message gets deleted, we want to know who deleted it and what was the original message.
 # If the message was deleted by someone other than the original author we need to look at the internal audit logs
