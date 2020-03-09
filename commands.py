@@ -1,6 +1,6 @@
 from importlib import reload ## DEBUGGING
 import random
-from .db import db
+from db.db import db
 import const, audit
 import logging
 import asyncio
@@ -34,7 +34,7 @@ QUIDDITCH = ['the-field']
 ROLES=const.ROLES
 
 COMMANDS = {
-	# General Commands for everyone	
+	# General Commands for everyone
 		'help': {
 				'roles':[ROLES.ALL],
 				'channels':PRODUCTION_CHANNELS,
@@ -80,7 +80,7 @@ COMMANDS = {
 	   			'channels':PRODUCTION_CHANNELS,
 	   			'hidden':False
 	   			},
-	# Admin / Mod commands 
+	# Admin / Mod commands
 	   	'change_status':{
 				'roles':[ROLES.ADMIN,ROLES.MOD],
 				'channels':PRODUCTION_CHANNELS,
@@ -148,7 +148,7 @@ COMMANDS = {
 }
 
 
-# Help Command 
+# Help Command
 #	Lists all the commands the user is allowed to run
 async def help(message):
 	l("Running 'help'")
@@ -165,7 +165,7 @@ async def help(message):
 					allowed_commands.append(command)
 	return await message.channel.send(f"Hi {message.author.mention}, you can run the following commands: {', '.join([f'`{x}`' for x in allowed_commands])}. Remember to add a '!' before the command you want :)")
 
-# Halp Command 
+# Halp Command
 #	Lists all the hidden commands the user is allowed to run
 async def halp(message):
 	l("Running 'halp'")
@@ -227,7 +227,7 @@ async def link(message):
 	if not target:
 		# Invalid discordID, abort.
 		return await message.channel.send(f"Sorry, I can't find anyone with that name, try again?")
-	
+
 	if re.search(r"[a-zA-Z]",parts[2]): # Checks for letters in the second argument, which means we're going down path (2)
 		# Update the players table to link this discordID to the player name
 		if len(parts) != 3:
@@ -279,8 +279,8 @@ async def find(message):
 
 # Activity Check
 #	Takes a player name and returns the status of all their characters.
-#	If it's Staff, then respond in that channel, if it's a normal user, PM them. 
-#	Additionally, delete the message if it's non-Staff, and log it in the wanderbots-void channel 
+#	If it's Staff, then respond in that channel, if it's a normal user, PM them.
+#	Additionally, delete the message if it's non-Staff, and log it in the wanderbots-void channel
 #	ex. !activity Charles
 async def activity(message):
 	l("Running 'activity'")
@@ -380,7 +380,7 @@ async def convert(message):
 	args = len(parts[1:])
 	# Which direction are they trying to convert?
 	if args == 1: # they're trying to convert muggle -> wizard
-		#This is going to get ugly. 
+		#This is going to get ugly.
 		base = float(parts[1])
 		gal_usd = round(base/25)
 		gal_gbp = round(base/20.05)
@@ -405,7 +405,7 @@ async def convert(message):
 			pass
 	else:
 		return await message.channel.send(f"Hey {message.author.mention}, looks like you might be having trouble with the `convert` command! You can either supply a single number to go from USD/GBP to Wizarding Currency, or you can supply 3 numbers that correspond to Galleons, Sickles, and Knuts, respectively! Try something like `!convert 10 50 1` or `!convert 150`. Have a great day!")
-	
+
 # Joke - tell a cheezy joke!
 async def joke(message):
 	l("Running 'joke'")

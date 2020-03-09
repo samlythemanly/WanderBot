@@ -1,6 +1,6 @@
 from importlib import reload ## DEBUGGING
 import datetime
-from .db import db
+from db.db import db
 import logging
 import asyncio
 from pprint import pprint
@@ -10,7 +10,7 @@ l = logging.info
 # If a message gets deleted, we want to know who deleted it and what was the original message.
 # If the message was deleted by someone other than the original author we need to look at the internal audit logs
 async def logDeletedMessage(message, action_type):
-	# In order to figure out if the user deleted the message themselves or if someone else did, 
+	# In order to figure out if the user deleted the message themselves or if someone else did,
 	#	we need to see if an event was recently inserted into the audit logs, say...a couple seconds ago.
 	print(f"Message created at: {message.created_at}")
 	# timediff = datetime.datetime.utcnow() - datetime.timedelta(seconds=5)
