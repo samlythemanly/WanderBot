@@ -6,7 +6,7 @@ import re
 import mysql.connector
 import sys
 sys.path.append("..")
-from ..private_info import DB_HOST, DB_USER, DB_PASSWORD, DB_CATALOG
+from private_info import DB_HOST, DB_USER, DB_PASSWORD, DB_CATALOG
 
 '''
     Activity Scraper.
@@ -52,7 +52,7 @@ def main():
   return
 
 def getTotalMembers(data):
-  print("Getting total memebers...", end='')
+  print("Getting total members...", end='')
   soup = BeautifulSoup(data, 'html.parser')
   # Figure out how many members there are using the pagination_pagetxt class
   paginatorField = soup.find('span', {'class':'pagination_pagetxt'})
