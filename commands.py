@@ -1,6 +1,6 @@
 from importlib import reload ## DEBUGGING
 import random
-from db.db import db
+from db.db import *
 import const, audit
 import logging
 import asyncio
@@ -133,7 +133,17 @@ COMMANDS = {
 				'roles':[ROLES.DEV],
 				'channels':TEST_CHANNELS,
 				'hidden':True
-				},
+        },
+    'reset_monthly_post_count': {
+        'roles': [ROLES.DEV],
+				'channels': TEST_CHANNELS,
+				'hidden': True
+        },
+      'reset_all_monthly_post_counts': {
+        'roles': [ROLES.DEV],
+				'channels': TEST_CHANNELS,
+				'hidden': True
+        },
 	# Special commands for Quidditch!
 		'quidditch': {
 				'roles':[ROLES.DEV],
@@ -237,7 +247,7 @@ async def link(message):
 		# 	return await message.channel.send(f"Sorry, player names cannot contain numbers. Don't blame me, blame society.")
 
 		#whew okay let's keep going.
-		operation,row_count = await db.linkDiscordToPlayer(target.id, player_name)
+		operation,row_count = await linkDiscordToPlayer(target.id, player_name)
 		if operation == 'update': # we updated their name
 			await message.channel.send(f"Updated the name of ID {discordID} to {player_name}")
 			return await logAuditEvent(message,'link player')
@@ -247,11 +257,11 @@ async def link(message):
 
 	# Okay let's go down the other path now (1), linked a discord ID to characters
 	charList = ' '.join(parts[2:]).replace(' ','').split(',')
-	rows_updated = await db.linkDiscordToCharacters(target.id,charList)
-	await db.initNewCharacter(charList)
+	rows_updated = await linkDiscordToCharacters(target.id,charList)
+	await initNewCharacter(charList)
 	if rows_updated > 0:
 		# We updated some rows, let's see what they are.
-		updated_chars = await db.getCharactersFromIDs(charList)
+		updated_chars = await getCharactersFromIDs(charList)
 		if updated_chars:
 			print(f"Updated Chars: {updated_chars}")
 			response = f"Linked {target.display_name} to the following character(s):"
@@ -261,6 +271,30 @@ async def link(message):
 		return await logAuditEvent(message,'link character')
 	else:
 		return await message.channel.send(f"Uh-oh. Something went wrong trying to link. Double-check the command and try again?")
+
+async def reset_monthly_post_count(message):
+  l("Running 'reset_monthly_post_count'")
+  parts = message.content.split(' ') #split on space first
+  if len(parts) < 3: #minimum number of required args
+		return await message.channel.send(f"Whoops! Looks like I need a little more info there...try again?")
+  prefix = parts[0] # The original command. Ignore it
+  charID = parts[1] # The id of the character to set the posts of.
+  postCount = parts[2] # The new post count for the character.
+  charInfo = await findUserFromID(charID)
+
+  if charInfo:
+    result = updateCharacterMonthlyPostCount(charID, postCount)
+    if not result:
+      return await message.channel.send(f"Sorry, updating the monthly post count didn't work. Check the spelling of the user or that the new post count is a valid number.")
+    return await message.channel.send(f"Successfully updated character ID {charID} with new post count {postCount}!")
+
+# Resets all character post counts for this month
+async def reset_all_monthly_post_counts(message):
+  l("Running 'reset_all_monthly_post_counts")
+  result = resetAllCharacterMonthlyPostCounts()
+  if not result:
+      return await message.channel.send(f"Sorry, resetting all post counts didn't work. Please ping the Wanderbot doctor.")
+  return await message.channel.send(f"Successfully reset all character monthly post counts!")
 
 
 # Find Character
@@ -288,13 +322,13 @@ async def activity(message):
 	player_id = message.author.id # default to their id first
 	if isStaff(message) and len(parts) > 1 and str(message.channel.category) in STAFF_CATEGORIES: # They're asking for someone else's characters (must be staff)
 		#They supplied a player name, so we should return all active characters for that player.
-		result = await db.getIDfromName(parts[1])
+		result = await getIDfromName(parts[1])
 		if not result:
 			return await message.channel.send(f"Sorry, couldn't find a player with the name: {parts[1]}. Check the spelling or link a name to a discord ID using `!link`")
 		player_id = result['discordID']
 
 	# So we now know it's a valid ID, let's pull all the characters for that player.
-	chars = await db.getPlayerCharacters(player_id)
+	chars = await getPlayerCharacters(player_id)
 	if not chars:
 		return await message.channel.send(f"Whelp, looks like I couldn't find any characters ¯\\_(ツ)_/¯")
 
@@ -420,7 +454,7 @@ async def archive(message):
 	l("Running 'archive'")
 	charID = await parseCharID(message)
 	charInfo = await findUserFromID(charID)
-	archived = await db.archiveCharacterByID(charID)
+	archived = await archiveCharacterByID(charID)
 	if not archived:
 		return await message.channel.send(f"Character with ID {charID} is archived already!")
 	await message.channel.send(f"{charInfo['name']} is now sleeping ZzZz...\n")
@@ -431,7 +465,7 @@ async def unarchive(message):
 	l("Running 'unarchive'")
 	charID = await parseCharID(message)
 	charInfo = await findUserFromID(charID)
-	unarchived = await db.unarchiveCharacterByID(charID)
+	unarchived = await unarchiveCharacterByID(charID)
 	if not unarchived:
 		return await message.channel.send(f"Character with ID {charID} is not archived, use !archived to see who is archived.")
 	await message.channel.send(f"{charInfo['name']} is now alive!\n")
@@ -439,7 +473,7 @@ async def unarchive(message):
 
 async def probation(message):
 	l("Running 'probation'")
-	probation = await db.getCharactersOnProbation()
+	probation = await getCharactersOnProbation()
 	if not probation:
 		return await message.channel.send(f"Could not find any characters on probation. Woo!")
 
@@ -455,7 +489,7 @@ async def probation(message):
 
 async def archived(message):
 	l("Running 'archived'")
-	archived = await db.getCharactersOnArchived()
+	archived = await getCharactersOnArchived()
 	if not archived:
 		return await message.channel.send(f"Could not find any characters that are archived. Woo!")
 
@@ -499,7 +533,7 @@ async def getUserFromID(message,dID):
 	return None
 
 async def findUserFromID(charID):
-	charInfo = await db.getCharacterFromID(charID)
+	charInfo = await getCharacterFromID(charID)
 	if not charInfo:
 		return await message.channel.send(f"Could not find a character with ID {charID}. Try again?")
 	return charInfo

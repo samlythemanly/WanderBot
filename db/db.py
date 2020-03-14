@@ -159,3 +159,25 @@ async def unarchiveCharacterByID(playerID):
 		return res
 	else:
 		return None
+
+@initConn
+async def updateCharacterMonthlyPostCount(charID, postCount):
+  sql = (f"UPDATE Characters SET post_count = {postCount} WHERE ID = {charID}")
+  cur.execute(sql)
+  res = cur.rowcount
+  db.commit()
+  if res:
+    return res
+  else:
+    return None
+
+@initConn
+async def resetAllCharacterMonthlyPostCounts():
+  sql = (f"UPDATE Characters SET post_count = 0")
+  cur.execute(sql)
+  res = cur.rowcount
+  db.commit()
+  if res:
+    return res
+  else:
+    return None

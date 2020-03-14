@@ -6,9 +6,9 @@ import re
 import mysql.connector
 import sys
 sys.path.append("..")
-from private_info import DB_HOST, DB_USER, DB_PASSWORD, DB_CATALOG
+from ..private_info import DB_HOST, DB_USER, DB_PASSWORD, DB_CATALOG
 
-''' 
+'''
     Activity Scraper.
 
 Scrape all the top posts from the site and update DBs accordingly.
@@ -32,12 +32,12 @@ MAX_RESULTS_PER_PAGE = 50
 
 def main():
   print(f"\nRUN AT: {dt.datetime.now()}\n**************************************\nStarting up!")
-  
+
   activityList = []
   # Request the first page
   result = requests.get(createURL(MAX_RESULTS_PER_PAGE,0))
   print("Calculating metadata")
-  #Figure out how many pages there are 
+  #Figure out how many pages there are
   total_pages = ceil(int(getTotalMembers(result.content)) / MAX_RESULTS_PER_PAGE)
   # Don't forget to scrape the first page
   print("Scraping page 0")
@@ -87,7 +87,7 @@ def updateDatabase(activityList):
     database=DB_CATALOG
   )
 
-  flag = 1 
+  flag = 1
   mycursor = mydb.cursor(dictionary=True)
   mycursor.execute("SELECT * FROM Characters")
   # Grab all currently known characters from the database
