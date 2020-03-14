@@ -57,18 +57,18 @@ class Game(object):
         # This player can do that action, let's save it for the next upkeep phase
         event = (player, action, t_player)
         # if action.type == 'instant':
-        # 	self.events.append(event)
-        # 	return self.endTurn() # fall-down into a bunch of stuff
+        #   self.events.append(event)
+        #   return self.endTurn() # fall-down into a bunch of stuff
         self.events.append(event)
         return self.generateResponse(success=True, extras=None)  # Successful, and did not trigger anything
 
     # TODO
     # UPKEEP PHASE:
-    #	- Resolve all events from the previous turn in order.
-    #	- Apply / Remove trait modifiers
-    #	- Generate list of players who can perform actions this turn
-    #	- Announce results of previous turn
-    #	- [optional] Announce information about the Snitch.
+    #  - Resolve all events from the previous turn in order.
+    #  - Apply / Remove trait modifiers
+    #  - Generate list of players who can perform actions this turn
+    #  - Announce results of previous turn
+    #  - [optional] Announce information about the Snitch.
     def upkeep(self):
         self.turn += 1
         action_log = []  # Human readable logs to summarize what happened
@@ -116,9 +116,9 @@ class Game(object):
 
         ## Will implement these later
         # if event[1] == 'search':
-        # 	pass
+        #   pass
         # if event[1] == 'foul':
-        # 	pass
+        #   pass
         # Okay that's the main loop, let's now handle the hits
         for event in hits:
             action_log.append(f"{event[0].name} hit's the Bludger towards {event[2].name}!")
@@ -142,11 +142,11 @@ class Game(object):
 
     # TODO
     # In order to validate the action we need to check a few things:
-    #	✔ If the action involves a ball, can the player be in possesion of it, and is the ball free?
-    #	- Is the player incapciated?
-    #	- Is that action on cooldown?
-    #	- Is this part of the action set for this player?
-    #	- If there are extra args, make sure they make sense.
+    #  ✔ If the action involves a ball, can the player be in possesion of it, and is the ball free?
+    #  - Is the player incapciated?
+    #  - Is that action on cooldown?
+    #  - Is this part of the action set for this player?
+    #  - If there are extra args, make sure they make sense.
     def validateAction(self, player, action, t_player, team):
         # First, check if the player can run this action and that's not on cooldown (using 'or' because of short-circut)
         if not player.hasAction(action) or player.isActionOnCooldown(action):

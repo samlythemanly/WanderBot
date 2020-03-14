@@ -28,8 +28,8 @@ l = logging.info  # Me being lazy.
 ##   TODO   ##
 ######################
 #   - Quidditch commands
-#	- Better log statements for what's going on (convert all prints to logs)
-#	- Logging on deleted statements?
+#  - Better log statements for what's going on (convert all prints to logs)
+#  - Logging on deleted statements?
 
 favorite_user = None
 flagged_message = 0
@@ -44,12 +44,12 @@ async def on_ready():
     await set_status()
     # For now, we're going to hard-code the players....
     # players = []
-    # player1 = {	'name':"Bijan",
-    # 			'charID':1,
-    # 			'house':"Ravenclaw",
-    # 			'role':"chaser"}
-    # 			'jersey':0,
-    # 			'discordID':318849064307523584,
+    # player1 = {  'name':"Bijan",
+    #       'charID':1,
+    #       'house':"Ravenclaw",
+    #       'role':"chaser"}
+    #       'jersey':0,
+    #       'discordID':318849064307523584,
     # players.append(player1)
     global GM
     print("Initializing Game Manager...")
@@ -157,7 +157,7 @@ async def purgeTheField(message):
             print(f"Deleted {len(deleted_messages)} messages!")
 
 
-# Hot-reloading libs - FOR DEBUGGING ONLY 
+# Hot-reloading libs - FOR DEBUGGING ONLY
 def reloadCommands():
     runner_modules = [reloadLibs, loadRoster, createScoreboard, newAction]
     for modules in runner_modules:

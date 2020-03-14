@@ -14,17 +14,17 @@ class Ball(object):
 
 # Set up internal variables for a Quaffle
 # def makeQuaffle(self):
-# 	self.value = 10
-# 	self.valid_owners = ['chaser','keeper']
+#   self.value = 10
+#   self.valid_owners = ['chaser','keeper']
 
 # # Set up internal variables for a Bludger
 # def makeBludger(self):
-# 	self.value = 0
-# 	self.valid_owners = ['beater']
-# 	self.collidable = True
+#   self.value = 0
+#   self.valid_owners = ['beater']
+#   self.collidable = True
 
 # # Set up internal variables for a Snitch
 # def makeSnitch(self):
-# 	self.value = 150
-# 	self.valid_owners = ['seeker']
-# 	self.visibility = 0.0
+#   self.value = 150
+#   self.valid_owners = ['seeker']
+#   self.visibility = 0.0

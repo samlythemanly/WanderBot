@@ -1,6 +1,6 @@
 
 /*
-	All there is for now, will add more later 
+  All there is for now, will add more later
 */
 
 $(function() {
