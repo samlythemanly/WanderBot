@@ -161,8 +161,8 @@ async def unarchiveCharacterByID(playerID):
     return None
 
 @initConn
-async def updateCharacterMonthlyPostCount(charID, postCount):
-  sql = (f"UPDATE Characters SET post_count = {postCount} WHERE ID = {charID}")
+async def setCharacterMonthlyPostCount(charID, postCount):
+  sql = (f"UPDATE Characters SET posts_this_month = {postCount} WHERE ID = {charID}")
   cur.execute(sql)
   res = cur.rowcount
   db.commit()
@@ -173,7 +173,19 @@ async def updateCharacterMonthlyPostCount(charID, postCount):
 
 @initConn
 async def resetAllCharacterMonthlyPostCounts():
-  sql = (f"UPDATE Characters SET post_count = 0")
+  sql = (f"UPDATE Characters SET posts_this_month = 0")
+  cur.execute(sql)
+  res = cur.rowcount
+  db.commit()
+  if res:
+    return res
+  else:
+    return None
+
+@initConn
+async def setProbation(charID, probation):
+  sql = (
+      f"UPDATE Characters SET on_probation = {probation} WHERE ID = {charID}")
   cur.execute(sql)
   res = cur.rowcount
   db.commit()

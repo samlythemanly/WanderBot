@@ -134,12 +134,17 @@ COMMANDS = {
         'channels':TEST_CHANNELS,
         'hidden':True
         },
-    'reset_monthly_post_count': {
+    'set_monthly_post_count': {
         'roles': [ROLES.DEV],
         'channels': TEST_CHANNELS,
         'hidden': True
         },
-      'reset_all_monthly_post_counts': {
+    'reset_all_monthly_post_counts': {
+        'roles': [ROLES.DEV],
+        'channels': TEST_CHANNELS,
+        'hidden': True
+        },
+    'set_probation': {
         'roles': [ROLES.DEV],
         'channels': TEST_CHANNELS,
         'hidden': True
@@ -272,7 +277,7 @@ async def link(message):
   else:
     return await message.channel.send(f"Uh-oh. Something went wrong trying to link. Double-check the command and try again?")
 
-async def reset_monthly_post_count(message):
+async def set_monthly_post_count(message):
   l("Running 'reset_monthly_post_count'")
   parts = message.content.split(' ') #split on space first
   if len(parts) < 3: #minimum number of required args
@@ -283,19 +288,39 @@ async def reset_monthly_post_count(message):
   charInfo = await findUserFromID(charID)
 
   if charInfo:
-    result = updateCharacterMonthlyPostCount(charID, postCount)
+    result = await setCharacterMonthlyPostCount(charID, postCount)
     if not result:
-      return await message.channel.send(f"Sorry, updating the monthly post count didn't work. Check the spelling of the user or that the new post count is a valid number.")
+      return await message.channel.send(f"Sorry, updating the monthly post count didn't work. Please check that the new post count is a valid number.")
     return await message.channel.send(f"Successfully updated character ID {charID} with new post count {postCount}!")
 
 # Resets all character post counts for this month
 async def reset_all_monthly_post_counts(message):
   l("Running 'reset_all_monthly_post_counts")
-  result = resetAllCharacterMonthlyPostCounts()
+  result = await resetAllCharacterMonthlyPostCounts()
   if not result:
       return await message.channel.send(f"Sorry, resetting all post counts didn't work. Please ping the Wanderbot doctor.")
   return await message.channel.send(f"Successfully reset all character monthly post counts!")
 
+# Sets the probation status for a character
+async def set_probation(message):
+  l("Running 'set_probation'")
+  parts = message.content.split(' ')  # split on space first
+  if len(parts) < 3:  # minimum number of required args
+    return await message.channel.send(f"Whoops! Looks like I need a little more info there...try again?")
+  prefix = parts[0]  # The original command. Ignore it
+  charID = parts[1]  # The id of the character to set the probation of.
+  probation = parts[2]  # What to set the probation value to.
+
+  if probation.lower() not in ["yes", "no"]:
+    return await message.channel.send(f"Sorry, I don't understand probation of {probation}! Please set probation to either Yes or No")
+
+  charInfo = await findUserFromID(charID)
+
+  if charInfo:
+    result = await setProbation(charID, 1 if probation.lower() == "yes" else 0)
+    if not result:
+      return await message.channel.send(f"Sorry, updating probation didn't work. Please ping the Wanderbot doctor.")
+    return await message.channel.send(f"Successfully updated character ID {charID} with new probation value of {probation}!")
 
 # Find Character
 #  Searches the db for a character and returns info about them
