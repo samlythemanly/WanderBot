@@ -135,17 +135,17 @@ COMMANDS = {
         'hidden':True
         },
     'set_monthly_post_count': {
-        'roles': [ROLES.DEV],
+        'roles': [ROLES.ADMIN],
         'channels': TEST_CHANNELS,
         'hidden': True
         },
     'reset_all_monthly_post_counts': {
-        'roles': [ROLES.DEV],
+        'roles': [ROLES.ADMIN],
         'channels': TEST_CHANNELS,
         'hidden': True
         },
     'set_probation': {
-        'roles': [ROLES.DEV],
+        'roles': [ROLES.ADMIN],
         'channels': TEST_CHANNELS,
         'hidden': True
         },
