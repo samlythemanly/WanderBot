@@ -291,7 +291,8 @@ async def set_name(message):
     return await message.channel.send(f"Whoops! Looks like I need a little more info there...try again?")
   prefix = parts[0]  # The original command. Ignore it
   charID = parts[1]  # The id of the character to set the name of.
-  name = parts[2:].join(' ').strip()  # What to set the name to.
+  # What to set the name to.
+  name = " ".join(parts[2:]).strip()
 
   if not name:
     return await message.channel.send(f"Please enter an actual name, not just whitespace!")
