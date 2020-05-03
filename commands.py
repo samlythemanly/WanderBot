@@ -285,13 +285,13 @@ async def link(message):
 
 # Set the name of a character
 async def set_name(message):
-  l("Running 'change_name'")
+  l("Running 'set_name'")
   parts = message.content.split(' ')  # split on space first
   if len(parts) < 3:  # minimum number of required args
     return await message.channel.send(f"Whoops! Looks like I need a little more info there...try again?")
   prefix = parts[0]  # The original command. Ignore it
   charID = parts[1]  # The id of the character to set the name of.
-  name = parts[2].strip()  # What to the name to.
+  name = parts[2:].join(' ').strip()  # What to set the name to.
 
   if not name:
     return await message.channel.send(f"Please enter an actual name, not just whitespace!")
