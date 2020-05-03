@@ -193,3 +193,16 @@ async def setProbation(charID, probation):
     return res
   else:
     return None
+
+
+@initConn
+async def setName(charID, name):
+  sql = (
+      f"UPDATE Characters SET name = {name} WHERE ID = {charID}")
+  cur.execute(sql)
+  res = cur.rowcount
+  db.commit()
+  if res:
+    return res
+  else:
+    return None

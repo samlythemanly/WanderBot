@@ -149,6 +149,11 @@ COMMANDS = {
         'channels': TEST_CHANNELS,
         'hidden': True
         },
+    'set_name': {
+        'roles': [ROLES.ADMIN],
+        'channels': TEST_CHANNELS,
+        'hidden': True
+        },
   # Special commands for Quidditch!
     'quidditch': {
         'roles':[ROLES.DEV],
@@ -276,6 +281,31 @@ async def link(message):
     return await logAuditEvent(message,'link character')
   else:
     return await message.channel.send(f"Uh-oh. Something went wrong trying to link. Double-check the command and try again?")
+
+
+# Set the name of a character
+async def set_name(message):
+  l("Running 'change_name'")
+  parts = message.content.split(' ')  # split on space first
+  if len(parts) < 3:  # minimum number of required args
+    return await message.channel.send(f"Whoops! Looks like I need a little more info there...try again?")
+  prefix = parts[0]  # The original command. Ignore it
+  charID = parts[1]  # The id of the character to set the name of.
+  name = parts[2].strip()  # What to the name to.
+
+  if not name:
+    return await message.channel.send(f"Please enter an actual name, not just whitespace!")
+
+  charInfo = await findUserFromID(charID)
+
+  if charInfo:
+    result = await setName(charID, name)
+    if not result:
+      return await message.channel.send(f"Sorry, updating name didn't work. Please ping the Wanderbot doctor.")
+    return await message.channel.send(f"Successfully updated character ID {charID} with new name {name}!")
+  else:
+    return await message.channel.send(f"Could not find character with ID {charID}")
+
 
 async def set_monthly_post_count(message):
   l("Running 'reset_monthly_post_count'")
