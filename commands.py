@@ -25,7 +25,7 @@ PRODUCTION_CHANNELS = [
   'staff-has-fun-sometimes',
   'staff-general',
   'wanderbots-void']
-TEST_CHANNELS = ['bot-test','feature-requests','temp','staff-general','wanderbots-void']
+TEST_CHANNELS = ['bot-test','feature-requests','temp','staff-general','wanderbots-void','wanderbot-operating-room']
 STAFF_CATEGORIES = ['Bot Playground',
   'The Magic Treehouse'
   ]
