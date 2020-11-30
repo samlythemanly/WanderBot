@@ -21,7 +21,8 @@ else:
     print("Usage: python bot.py <PROD|DEV>")
     exit(-1)
 
-client = discord.Client()
+intents = discord.Intents.all()
+client = discord.Client(intents=intents)
 
 l = logging.info # Me being lazy.
 
@@ -173,13 +174,13 @@ def getAuditChannel(message):
             if str(ch) == const.AUDIT_CHANNEL:
                 return ch
 
-# Hot-reloading libs - FOR DEBUGGING ONLY 
+# Hot-reloading libs - FOR DEBUGGING ONLY
 def reloadCommands():
     reload(commands)
     commands.reloadLibs()
     return
 
-async def initQuidditchBot(message): 
+async def initQuidditchBot(message):
     await message.channel.send(f"Are you sure you want to start QuidditchBot? Respond `yes` or `no`")
     def confirmation(m):
         return m.author == message.author
@@ -205,12 +206,12 @@ async def initQuidditchBot(message):
         #     print(f'[stdout]\n{stdout.decode()}')
         # if stderr:
         #     print(f'[stderr]\n{stderr.decode()}')
-        p = subprocess.Popen([sys.executable, './Quidditch/quidditch.py'], 
-                                    stdout=subprocess.PIPE, 
+        p = subprocess.Popen([sys.executable, './Quidditch/quidditch.py'],
+                                    stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
         global q_proc
         q_proc = p.pid
-        
+
 async def teardownQuidditchBot(message):
     global q_proc
     if not q_proc:
