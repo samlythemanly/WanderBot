@@ -21,7 +21,6 @@ import { lazyInject } from '../config/inversify.config';
 import { createTable } from '../common/util';
 
 @Discord('!')
-@Infos({ isAdmin: true, isHidden: true })
 export abstract class AdminCommands {
   @lazyInject(Database) private _database!: Database;
   private _users!: Repository<User>;
@@ -36,9 +35,7 @@ export abstract class AdminCommands {
 
   @Command('changeStatus')
   @Guard(hasRole(Role.admin))
-  @Infos({
-    usage: '!changeStatus',
-  })
+  @Infos({ isAdmin: true, isHidden: true, usage: '!changeStatus' })
   changeStatus(message: CommandMessage) {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
 
@@ -48,6 +45,8 @@ export abstract class AdminCommands {
   @Command('linkDiscord :id :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!linkDiscord <discord id> <alias>',
   })
   async linkDiscordId(message: CommandMessage) {
@@ -101,6 +100,8 @@ export abstract class AdminCommands {
   @Command('linkCharacter :character :username')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!linkCharacter <character name> <user alias>',
   })
   async linkCharacter(message: CommandMessage) {
@@ -134,6 +135,8 @@ export abstract class AdminCommands {
   @Command('unlinkCharacter :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!unlinkCharacter <character name>',
   })
   async unlinkCharacter(message: CommandMessage) {
@@ -170,6 +173,8 @@ export abstract class AdminCommands {
   @Command('changeAlias :existing :new')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!changeAlias <existing alias> <new alias>',
   })
   async changeAlias(message: CommandMessage) {
@@ -215,9 +220,7 @@ export abstract class AdminCommands {
 
   @Command('unlinkDiscord :name')
   @Guard(hasRole(Role.admin))
-  @Infos({
-    usage: '!unlinkDiscord <alias>',
-  })
+  @Infos({ isAdmin: true, isHidden: true, usage: '!unlinkDiscord <alias>' })
   async unlinkDiscord(message: CommandMessage) {
     const name = message.args.name;
 
@@ -252,9 +255,7 @@ export abstract class AdminCommands {
 
   @Command('describe :name')
   @Guard(hasRole(Role.admin))
-  @Infos({
-    usage: '!describe <character name>',
-  })
+  @Infos({ isAdmin: true, isHidden: true, usage: '!describe <character name>' })
   async describe(message: CommandMessage) {
     const name = message.commandContent.split(' ').splice(1).join(' ');
 
@@ -286,6 +287,8 @@ export abstract class AdminCommands {
   @Command('isArchived :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!isArchived <character name>',
   })
   async isArchived(message: CommandMessage) {
@@ -310,6 +313,8 @@ export abstract class AdminCommands {
   @Command('isOnProbation :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!isOnProbation <character name>',
   })
   async isOnProbation(message: CommandMessage) {
@@ -334,6 +339,8 @@ export abstract class AdminCommands {
   @Command('setArchived :isArchived :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!setArchived <true/false/yes/no> <character name>',
   })
   async setArchived(message: CommandMessage) {
@@ -365,6 +372,8 @@ export abstract class AdminCommands {
   @Command('setMonthlyPostCount :postCount :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!setMonthlyPostCount <post count> <character name>',
   })
   async setMonthlyPostCount(message: CommandMessage) {
@@ -397,6 +406,8 @@ export abstract class AdminCommands {
   @Command('setProbation :isOnProbation :name')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!setProbation <true/false/yes/no> <character name>',
   })
   async setProbation(message: CommandMessage) {
@@ -430,6 +441,8 @@ export abstract class AdminCommands {
   @Command('setName :id :newName')
   @Guard(hasRole(Role.admin))
   @Infos({
+    isAdmin: true,
+    isHidden: true,
     usage: '!setName <character id> <new character name>',
   })
   async setName(message: CommandMessage) {

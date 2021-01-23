@@ -221,17 +221,19 @@ export abstract class GeneralCommands {
   help(message: CommandMessage) {
     const roles = message.guild?.roles.cache;
     const isAdmin = roles.has(Role.admin) || roles.has(Role.wanderbotsFriend);
-    const availableCommands = Client.getCommands().filter(command => {
-      const isHidden = command.infos['isHidden'];
-      if (isHidden) return false;
+    const allCommands = Client.getCommands().filter(command => {
       if (isAdmin) return true;
       return !command.infos['isAdmin'];
     });
 
+    const availableCommands = allCommands.filter(
+      command => command.infos['isHidden']
+    );
+
     const command = message.args.command;
 
     if (command) {
-      const requestedCommand = availableCommands.find(
+      const requestedCommand = allCommands.find(
         cmd => cmd.commandName.toString() === command
       );
       if (!requestedCommand) {
@@ -239,7 +241,7 @@ export abstract class GeneralCommands {
         return;
       }
 
-      message.channel.send(`!help\nUsage: ${requestedCommand.infos.usage}`);
+      message.channel.send(`${command} usage: ${requestedCommand.infos.usage}`);
       return;
     }
 
