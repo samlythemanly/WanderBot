@@ -21,7 +21,7 @@ import {
   knutToGalleonRatio as galleonToKnutRatio,
   sickleToGalleonRatio as galleonToSickleRatio,
 } from '../common/currency';
-import { AsciiTable } from 'ascii-table';
+import * as asciiTable from 'ascii-table';
 import { findUserWithName, User } from '../database/entities/user';
 import { isStaffChannel } from './guards';
 
@@ -46,33 +46,43 @@ export abstract class GeneralCommands {
 
     if (!user) {
       message.channel.send(
-        `Doesn't seem like you've been linked to a user yet, ` +
+        "Doesn't seem like you've been linked to a user yet, " +
           `${message.author}! Ask an admin to link your Discord account to a ` +
-          `user.`
+          'user.'
       );
       return;
     }
 
-    const table = new AsciiTable(`Activity history for ${user.name}`);
-    table.setHeading(
-      'Character',
-      'Monthly post count',
-      'Total posts',
-      'On probation;'
-    );
+    message.channel.send("Here's your current activity:\n");
 
-    user.characters.forEach(character =>
-      table.addRow(
-        character.name,
-        character.monthlyPostCount,
-        character.postCount,
-        character.isOnProbation
-      )
-    );
+    const characters = [...user.characters];
 
-    message.author.dmChannel.send(
-      `Here's your current activity:\n${table.toString()}`
-    );
+    let pageNumber = 1;
+
+    while (characters.length > 0) {
+      const table = new asciiTable(
+        `Activity history for ${user.name} (Page ${pageNumber})`
+      );
+      table.setHeading(
+        'Character',
+        'Monthly post count',
+        'Total posts',
+        'On probation;'
+      );
+
+      characters
+        .splice(0, 5)
+        .forEach(character =>
+          table.addRow(
+            character.name,
+            character.monthlyPostCount,
+            character.postCount,
+            character.isOnProbation
+          )
+        );
+      message.channel.send(`\`\`\`\n${table.toString()}\n\`\`\``);
+      pageNumber++;
+    }
 
     message.delete();
   }
@@ -86,26 +96,36 @@ export abstract class GeneralCommands {
 
     if (!user) return;
 
-    const table = new AsciiTable(`Activity history for ${user.name}`);
-    table.setHeading(
-      'Character',
-      'Monthly post count',
-      'Total posts',
-      'On probation;'
-    );
+    message.channel.send(`Here's ${name}'s current activity:\n`);
 
-    user.characters.forEach(character =>
-      table.addRow(
-        character.name,
-        character.monthlyPostCount,
-        character.postCount,
-        character.isOnProbation
-      )
-    );
+    const characters = [...user.characters];
 
-    message.channel.send(
-      `Here's ${name}'s current activity:\n${table.toString()}`
-    );
+    let pageNumber = 1;
+
+    while (characters.length > 0) {
+      const table = new asciiTable(
+        `Activity history for ${user.name} (Page ${pageNumber})`
+      );
+      table.setHeading(
+        'Character',
+        'Monthly post count',
+        'Total posts',
+        'On probation;'
+      );
+
+      characters
+        .splice(0, 5)
+        .forEach(character =>
+          table.addRow(
+            character.name,
+            character.monthlyPostCount,
+            character.postCount,
+            character.isOnProbation
+          )
+        );
+      message.channel.send(`\`\`\`\n${table.toString()}\n\`\`\``);
+      pageNumber++;
+    }
   }
 
   @Command('coinflip')
