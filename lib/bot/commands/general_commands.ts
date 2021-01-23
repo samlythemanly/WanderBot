@@ -260,7 +260,8 @@ export abstract class GeneralCommands {
   @Command('halp')
   @Infos({ isHidden: true, usage: 'hOw Do YoU uSe HaLp' })
   halp(message: CommandMessage) {
-    const isAdmin = message.guild?.roles.cache.has(Role.admin);
+    const roles = message.guild?.roles.cache;
+    const isAdmin = roles.has(Role.admin) || roles.has(Role.wanderbotsFriend);
     const availableCommands = Client.getCommands().filter(command => {
       const isHidden = command.infos['isHidden'];
       if (!isHidden) return false;
