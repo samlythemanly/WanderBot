@@ -104,7 +104,7 @@ export class ActivityManager {
     const postCount = parseInt(row.find('.row4.posts').text());
 
     let character = this._existingCharacters.find(
-      character => character.id === id
+      character => character.id == id
     );
     if (!character) {
       character = new Character();
