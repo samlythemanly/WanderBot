@@ -45,10 +45,10 @@ export abstract class AdminCommands {
     message.client.user?.setActivity({ type: status[0], name: status[1] });
   }
 
-  @Command('linkId :id :name')
+  @Command('linkDiscord :id :name')
   @Guard(hasRole(Role.admin))
   @Infos({
-    usage: '!linkId <discord id> <alias>',
+    usage: '!linkDiscord <discord id> <alias>',
   })
   async linkDiscordId(message: CommandMessage) {
     const name = message.args.name;
