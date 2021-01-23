@@ -53,7 +53,7 @@ export abstract class GeneralCommands {
       return;
     }
 
-    message.channel.send("Here's your current activity:\n");
+    message.author.send("Here's your current activity:\n");
 
     const characters = [...user.characters];
 
