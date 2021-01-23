@@ -125,6 +125,8 @@ export class ActivityManager {
     character.monthlyPostCount = postCount - (character.monthlyPostCount ?? 0);
     character.postCount = postCount;
 
+    if (character.monthlyPostCount >= 2) character.isOnProbation = false;
+
     return character;
   }
 
