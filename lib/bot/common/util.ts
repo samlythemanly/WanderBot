@@ -36,7 +36,6 @@ export function createTables(
     }
 
     tables.push(table);
-    pageNumber++;
   }
 
   return tables;
