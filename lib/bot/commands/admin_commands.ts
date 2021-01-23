@@ -21,7 +21,7 @@ import { lazyInject } from '../config/inversify.config';
 import { createTable } from '../common/util';
 
 @Discord('!')
-@Infos({ isAdmin: true })
+@Infos({ isAdmin: true, isHidden: true })
 export abstract class AdminCommands {
   @lazyInject(Database) private _database!: Database;
   private _users!: Repository<User>;
