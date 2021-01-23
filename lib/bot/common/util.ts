@@ -20,11 +20,10 @@ export function createTables(
   fields: string[]
 ): unknown[] {
   const tables = [];
-  let pageNumber = 1;
   const totalPages =
     Math.floor(characters.length / 5) + (characters.length % 5 > 0 ? 1 : 0);
-  while (pageNumber <= totalPages) {
-    const page = characters.slice(0, 5);
+  for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+    const page = characters.slice((pageNumber - 1) * 5, pageNumber * 5);
 
     const table = new asciiTable(
       `${header} (Page ${pageNumber} of ${totalPages})`
