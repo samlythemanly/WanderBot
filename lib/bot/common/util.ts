@@ -45,13 +45,13 @@ function _createHeading(fields: string[]): string[] {
   const columns = [];
 
   if (fields.includes('id')) columns.push('ID');
-  if (fields.includes('name')) columns.push('Character');
+  if (fields.includes('name')) columns.push('Name');
   if (fields.includes('owner')) columns.push('Owner');
-  if (fields.includes('monthlyPostCount')) columns.push('Monthly post count');
+  if (fields.includes('monthlyPostCount')) columns.push('Monthly posts');
   if (fields.includes('postCount')) columns.push('Total posts');
-  if (fields.includes('isNew')) columns.push('Is new?');
-  if (fields.includes('isOnProbation')) columns.push('Is on probation?');
-  if (fields.includes('isArchived')) columns.push('Is archived?');
+  if (fields.includes('isNew')) columns.push('New?');
+  if (fields.includes('isOnProbation')) columns.push('On probation?');
+  if (fields.includes('isArchived')) columns.push('Archived?');
 
   return columns;
 }
