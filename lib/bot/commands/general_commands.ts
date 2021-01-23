@@ -227,7 +227,7 @@ export abstract class GeneralCommands {
     });
 
     const availableCommands = allCommands.filter(
-      command => command.infos['isHidden']
+      command => !command.infos['isHidden']
     );
 
     const command = message.args.command;
