@@ -18,7 +18,7 @@ import { findUserWithName, User } from '../database/entities/user';
 import { hasRole } from './guards';
 import { lazyInject } from '../config/inversify.config';
 
-@Discord('°')
+@Discord('!')
 @Infos({ isAdmin: true })
 export abstract class AdminCommands {
   @lazyInject(Database) private _database!: Database;

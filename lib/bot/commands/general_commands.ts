@@ -25,7 +25,7 @@ import { AsciiTable } from 'ascii-table';
 import { findUserWithName, User } from '../database/entities/user';
 import { isStaffChannel } from './guards';
 
-@Discord('°')
+@Discord('!')
 @injectable()
 export abstract class GeneralCommands {
   @lazyInject(Database) private _database!: Database;
