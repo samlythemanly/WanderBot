@@ -64,7 +64,7 @@ export abstract class GeneralCommands {
       'name',
       'monthlyPostCount',
       'postCount',
-      'onProbation',
+      'isOnProbation',
     ]);
 
     for (const table of tables) {
@@ -93,7 +93,7 @@ export abstract class GeneralCommands {
       'name',
       'monthlyPostCount',
       'postCount',
-      'onProbation',
+      'isOnProbation',
     ]);
 
     for (const table of tables) {
