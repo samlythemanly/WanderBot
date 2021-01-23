@@ -65,7 +65,7 @@ export abstract class GeneralCommands {
 
     while (characters.length > 0) {
       const table = new asciiTable(
-        `Activity history for ${user.name} (Page ${pageNumber} of ${pageCount})`
+        `Activity for ${user.name} (Page ${pageNumber} of ${pageCount})`
       );
       table.setHeading(
         'Character',
@@ -112,7 +112,7 @@ export abstract class GeneralCommands {
 
     while (characters.length > 0) {
       const table = new asciiTable(
-        `Activity history for ${user.name} (Page ${pageNumber} of ${pageCount})`
+        `Activity for ${user.name} (Page ${pageNumber} of ${pageCount})`
       );
       table.setHeading(
         'Character',
