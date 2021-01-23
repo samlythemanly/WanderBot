@@ -4,7 +4,7 @@ import { Character } from './character';
 
 @Entity({ name: 'Users' })
 export class User {
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryColumn({ type: 'bigint' })
   discordId!: number;
 
   @Column({ type: 'varchar', nullable: false })

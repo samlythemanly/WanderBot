@@ -4,7 +4,7 @@ import { User } from './user';
 
 @Entity({ name: 'Characters' })
 export class Character {
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryColumn({ type: 'bigint' })
   id!: number;
 
   @ManyToOne(() => User, user => user.characters)
