@@ -60,7 +60,8 @@ export abstract class GeneralCommands {
     ];
 
     let pageNumber = 1;
-    let pageCount = characters.length / 5 + (characters.length % 5 > 0 ? 1 : 0);
+    let pageCount =
+      Math.floor(characters.length / 5) + (characters.length % 5 > 0 ? 1 : 0);
 
     while (characters.length > 0) {
       const table = new asciiTable(
@@ -106,7 +107,8 @@ export abstract class GeneralCommands {
     ];
 
     let pageNumber = 1;
-    let pageCount = characters.length / 5 + (characters.length % 5 > 0 ? 1 : 0);
+    let pageCount =
+      Math.floor(characters.length / 5) + (characters.length % 5 > 0 ? 1 : 0);
 
     while (characters.length > 0) {
       const table = new asciiTable(
