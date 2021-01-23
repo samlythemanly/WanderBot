@@ -55,13 +55,16 @@ export abstract class GeneralCommands {
 
     message.author.send("Here's your current activity:\n");
 
-    const characters = [...user.characters];
+    const characters = [
+      ...user.characters.filter(character => !character.isArchived),
+    ];
 
     let pageNumber = 1;
+    let pageCount = characters.length / 5 + (characters.length % 5 > 0 ? 1 : 0);
 
     while (characters.length > 0) {
       const table = new asciiTable(
-        `Activity history for ${user.name} (Page ${pageNumber})`
+        `Activity history for ${user.name} (Page ${pageNumber} of ${pageCount})`
       );
       table.setHeading(
         'Character',
@@ -98,19 +101,22 @@ export abstract class GeneralCommands {
 
     message.channel.send(`Here's ${name}'s current activity:\n`);
 
-    const characters = [...user.characters];
+    const characters = [
+      ...user.characters.filter(character => !character.isArchived),
+    ];
 
     let pageNumber = 1;
+    let pageCount = characters.length / 5 + (characters.length % 5 > 0 ? 1 : 0);
 
     while (characters.length > 0) {
       const table = new asciiTable(
-        `Activity history for ${user.name} (Page ${pageNumber})`
+        `Activity history for ${user.name} (Page ${pageNumber} of ${pageCount})`
       );
       table.setHeading(
         'Character',
         'Monthly post count',
         'Total posts',
-        'On probation;'
+        'On probation?'
       );
 
       characters
