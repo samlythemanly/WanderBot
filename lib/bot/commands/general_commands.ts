@@ -80,7 +80,7 @@ export abstract class GeneralCommands {
             character.isOnProbation
           )
         );
-      message.channel.send(`\`\`\`\n${table.toString()}\n\`\`\``);
+      message.author.send(`\`\`\`\n${table.toString()}\n\`\`\``);
       pageNumber++;
     }
 
