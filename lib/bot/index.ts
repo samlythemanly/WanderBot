@@ -88,7 +88,7 @@ export class Bot {
     const admin = await this._client.users.fetch(adminDiscordId);
 
     await admin.send(
-      `Hello! Happy ${new Date().toLocaleDateString('default', {
+      `Hello <@${admin.id}>! Happy ${new Date().toLocaleDateString('default', {
         month: 'long',
       })}. Here's your monthly update.`
     );

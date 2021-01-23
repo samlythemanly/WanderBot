@@ -48,7 +48,7 @@ export abstract class GeneralCommands {
     if (!user) {
       message.channel.send(
         "Doesn't seem like you've been linked to a user yet, " +
-          `${message.author}! Ask an admin to link your Discord account to a ` +
+          `<@${message.author.id}>! Ask an admin to link your Discord account to a ` +
           'user.'
       );
       return;
@@ -122,13 +122,14 @@ export abstract class GeneralCommands {
       message.channel.send(
         "I don't know who you want me to compliment, so I'll compliment " +
           "myself. I'm a good bot and I do good things. Thanks " +
-          `${message.author}!`
+          `<@${message.author.id}>!`
       );
+      return;
     }
 
     const compliment =
       compliments[Math.floor(Math.random() * compliments.length)];
-    message.channel.send(`Hey ${targetUser}, ${compliment}`);
+    message.channel.send(`Hey <@${targetUser.id}>, ${compliment}`);
   }
 
   @Command('convertMuggle :denomination :value')
@@ -242,7 +243,7 @@ export abstract class GeneralCommands {
     }
 
     message.channel.send(
-      `Hi ${message.author}, you can run the following commands: ` +
+      `Hi <@${message.author.id}>, you can run the following commands: ` +
         `${[
           ...new Set(
             availableCommands.map(command =>
@@ -265,8 +266,8 @@ export abstract class GeneralCommands {
     });
 
     message.channel.send(
-      `Surprise ${message.author}! You can run the following _*SPECIAL*_ ` +
-        `commands: ${[
+      `Surprise <@${message.author.id}>! You can run the following ` +
+        `_*SPECIAL*_ commands: ${[
           ...new Set(
             availableCommands.map(command =>
               command.commandName.toString().replace(/(\w+)(.*)/, '$1')
@@ -292,7 +293,7 @@ export abstract class GeneralCommands {
     if (!targetUser) {
       message.channel.send(
         "There's no one tagged to mock! Looks like the only fool here is you," +
-          ` ${message.author}!`
+          ` <@${message.author.id}>!`
       );
       return;
     }
@@ -303,7 +304,7 @@ export abstract class GeneralCommands {
 
     if (!lastMessage) {
       message.channel.send(
-        `${targetUser} hasn't sent a message in this channel!`
+        `<@${targetUser.id}> hasn't sent a message in this channel!`
       );
       return;
     }
@@ -314,7 +315,7 @@ export abstract class GeneralCommands {
       )
       .join('');
 
-    message.channel.send(`"${translatedMessage}" - ${targetUser}`);
+    message.channel.send(`"${translatedMessage}" - <@${targetUser.id}>`);
   }
 
   @Command('ping')
