@@ -219,8 +219,10 @@ export abstract class GeneralCommands {
   @Command('help :command')
   @Infos({ isHidden: true, usage: 'hOw Do YoU uSe HeLp' })
   help(message: CommandMessage) {
-    const roles = message.guild?.roles.cache;
-    const isAdmin = roles.has(Role.admin) || roles.has(Role.wanderbotsFriend);
+    const roles = message.member.roles.cache;
+    const isAdmin =
+      roles.some(role => role.name === Role.admin.toString()) ||
+      roles.some(role => role.name === Role.wanderbotsFriend.toString());
     const allCommands = Client.getCommands().filter(command => {
       if (isAdmin) return true;
       return !command.infos['isAdmin'];
@@ -234,7 +236,7 @@ export abstract class GeneralCommands {
 
     if (command) {
       const requestedCommand = allCommands.find(
-        cmd => cmd.commandName.toString() === command
+        cmd => cmd.commandName.toString().split(' ')[0] === command
       );
       if (!requestedCommand) {
         message.channel.send(`Sorry, I don't know what !${command} is!`);
@@ -260,8 +262,10 @@ export abstract class GeneralCommands {
   @Command('halp')
   @Infos({ isHidden: true, usage: 'hOw Do YoU uSe HaLp' })
   halp(message: CommandMessage) {
-    const roles = message.guild?.roles.cache;
-    const isAdmin = roles.has(Role.admin) || roles.has(Role.wanderbotsFriend);
+    const roles = message.member.roles.cache;
+    const isAdmin =
+      roles.some(role => role.name === Role.admin.toString()) ||
+      roles.some(role => role.name === Role.wanderbotsFriend.toString());
     const availableCommands = Client.getCommands().filter(command => {
       const isHidden = command.infos['isHidden'];
       if (!isHidden) return false;
