@@ -10,6 +10,7 @@ import { Database } from './database';
 import { Repository } from 'typeorm';
 import * as moment from 'moment';
 import { adminDiscordId, discordBotId } from './config/private';
+import { createTables } from './common/util';
 
 @injectable()
 export class Bot {
@@ -70,22 +71,20 @@ export class Bot {
   }
 
   private async _sendMonthlyUpdate() {
-    const characters = await this._characterRepository.find();
+    const characters = await this._characterRepository.find({
+      relations: ['owner'],
+    });
 
-    const charactersNowOnProbation = characters
-      .filter(character => character.isOnProbation)
-      .map(character => character.name);
-
-    const charactersNowArchived = characters
-      .filter(
-        character =>
-          character.isArchived &&
-          !this._archivedCharactersBeforeScrape.some(
-            archivedCharacter => archivedCharacter.id === character.id
-          )
-      )
-      .map(character => character.name);
-
+    const charactersNowOnProbation = characters.filter(
+      character => character.isOnProbation
+    );
+    const charactersNowArchived = characters.filter(
+      character =>
+        character.isArchived &&
+        !this._archivedCharactersBeforeScrape.some(
+          archivedCharacter => archivedCharacter.id === character.id
+        )
+    );
     const admin = await this._client.users.fetch(adminDiscordId);
 
     await admin.send(
@@ -95,20 +94,35 @@ export class Bot {
     );
 
     if (charactersNowOnProbation.length === 0) {
+      await admin.send('No characters were put on probation this month!');
     } else {
-      await admin.send(
-        `These characters are now on probation: ${charactersNowOnProbation.join(
-          ', '
-        )}`
+      await admin.send('These characters are now on probation:');
+
+      const tables = createTables(
+        'Characters now on probation',
+        charactersNowArchived,
+        ['name', 'owner', 'monthlyPostCount', 'postCount']
       );
+
+      for (const table of tables) {
+        await admin.send(table.toString());
+      }
     }
 
     if (charactersNowArchived.length === 0) {
       await admin.send('No characters were archived this month!');
     } else {
-      await admin.send(
-        `These characters are now archived: ${charactersNowArchived.join(', ')}`
+      await admin.send('These characters are now archived:');
+
+      const tables = createTables(
+        'Characters now archived',
+        charactersNowArchived,
+        ['name', 'owner', 'monthlyPostCount', 'postCount']
       );
+
+      for (const table of tables) {
+        admin.send(`\`\`\`\n${table.toString()}\n\`\`\``);
+      }
     }
   }
 }

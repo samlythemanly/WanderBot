@@ -8,6 +8,7 @@ import {
   Once,
   Guard,
   CommandNotFound,
+  // eslint-disable-next-line node/no-unpublished-import
 } from '@typeit/discord';
 import { injectable } from 'inversify';
 import { Repository } from 'typeorm';
@@ -21,9 +22,9 @@ import {
   knutToGalleonRatio as galleonToKnutRatio,
   sickleToGalleonRatio as galleonToSickleRatio,
 } from '../common/currency';
-import * as asciiTable from 'ascii-table';
 import { findUserWithName, User } from '../database/entities/user';
 import { isStaffChannel } from './guards';
+import { createTables } from '../common/util';
 
 @Discord('!')
 @injectable()
@@ -59,33 +60,15 @@ export abstract class GeneralCommands {
       ...user.characters.filter(character => !character.isArchived),
     ];
 
-    let pageNumber = 1;
-    let pageCount =
-      Math.floor(characters.length / 5) + (characters.length % 5 > 0 ? 1 : 0);
+    const tables = createTables('Your current activity', characters, [
+      'name',
+      'monthlyPostCount',
+      'postCount',
+      'onProbation',
+    ]);
 
-    while (characters.length > 0) {
-      const table = new asciiTable(
-        `Activity for ${user.name} (Page ${pageNumber} of ${pageCount})`
-      );
-      table.setHeading(
-        'Character',
-        'Monthly post count',
-        'Total posts',
-        'On probation;'
-      );
-
-      characters
-        .splice(0, 5)
-        .forEach(character =>
-          table.addRow(
-            character.name,
-            character.monthlyPostCount,
-            character.postCount,
-            character.isOnProbation
-          )
-        );
-      message.author.send(`\`\`\`\n${table.toString()}\n\`\`\``);
-      pageNumber++;
+    for (const table of tables) {
+      message.channel.send(`\`\`\`\n${table.toString()}\n\`\`\``);
     }
 
     message.delete();
@@ -106,33 +89,15 @@ export abstract class GeneralCommands {
       ...user.characters.filter(character => !character.isArchived),
     ];
 
-    let pageNumber = 1;
-    let pageCount =
-      Math.floor(characters.length / 5) + (characters.length % 5 > 0 ? 1 : 0);
+    const tables = createTables(`Activity for ${name}`, characters, [
+      'name',
+      'monthlyPostCount',
+      'postCount',
+      'onProbation',
+    ]);
 
-    while (characters.length > 0) {
-      const table = new asciiTable(
-        `Activity for ${user.name} (Page ${pageNumber} of ${pageCount})`
-      );
-      table.setHeading(
-        'Character',
-        'Monthly post count',
-        'Total posts',
-        'On probation?'
-      );
-
-      characters
-        .splice(0, 5)
-        .forEach(character =>
-          table.addRow(
-            character.name,
-            character.monthlyPostCount,
-            character.postCount,
-            character.isOnProbation
-          )
-        );
+    for (const table of tables) {
       message.channel.send(`\`\`\`\n${table.toString()}\n\`\`\``);
-      pageNumber++;
     }
   }
 

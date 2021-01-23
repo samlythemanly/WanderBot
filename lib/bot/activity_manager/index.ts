@@ -39,8 +39,8 @@ export class ActivityManager {
     const createCheerio = cheerio.load(html);
     const rows = createCheerio('table > tr');
 
-    for (let row of rows.toArray()) {
-      var character = await this._processRow(createCheerio(row));
+    for (const row of rows.toArray()) {
+      const character = await this._processRow(createCheerio(row));
       character && this._updatedCharacters.push(character);
     }
 
@@ -69,7 +69,7 @@ export class ActivityManager {
 
   private _updateProbationStatus() {
     const characters = [];
-    for (let character of this._updatedCharacters) {
+    for (const character of this._updatedCharacters) {
       if (!this._newCharactersThisRun.includes(character)) {
         if (character.monthlyPostCount < 2 && !character.isNew) {
           if (character.isOnProbation) {
@@ -104,6 +104,7 @@ export class ActivityManager {
     const postCount = parseInt(row.find('.row4.posts').text());
 
     let character = this._existingCharacters.find(
+      // eslint-disable-next-line eqeqeq
       character => character.id == id
     );
     if (!character) {
