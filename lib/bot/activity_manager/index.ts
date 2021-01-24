@@ -1,12 +1,16 @@
 import Axios from 'axios';
 import * as cheerio from 'cheerio';
-import { url } from '../common/constants';
+import { memberPageUrl } from '../common/constants';
 import { injectable } from 'inversify';
 import { Repository } from 'typeorm';
 import { Database } from '../database';
 import { Character } from '../database/entities/character';
 import container, { lazyInject } from '../config/inversify.config';
 
+/**
+ * Activity manager that scrapes the jcink site to calculate character activity,
+ * and stores this information in the database.
+ */
 @injectable()
 export class ActivityManager {
   @lazyInject(Database) private _database: Database;
@@ -17,7 +21,10 @@ export class ActivityManager {
 
   axios = Axios.create();
 
-  async _initialize() {
+  /**
+   * Initializes dependencies in order to run the scraper.
+   */
+  async _initialize(): Promise<void> {
     await this._database.initialize();
 
     if (!this._charactersRepository) {
@@ -27,20 +34,27 @@ export class ActivityManager {
     }
   }
 
+  /**
+   * Recursively scrapes the jcink members pages to create a snapshot of
+   * character activity.
+   * @param shouldUpdateProbation Whether we should enforce probation rule this
+   *                              run.
+   * @param initialPageNumber The page number to start the scrape at.
+   */
   private async _scrape(
-    isFirstRunOfMonth: boolean,
+    shouldUpdateProbation: boolean,
     initialPageNumber?: number
   ): Promise<Character[]> {
     if (!initialPageNumber) initialPageNumber = 0;
 
     this._existingCharacters = await this._charactersRepository.find();
 
-    const html = (await this.axios.get(url(initialPageNumber))).data;
+    const html = (await this.axios.get(memberPageUrl(initialPageNumber))).data;
     const createCheerio = cheerio.load(html);
     const rows = createCheerio('table > tr');
 
     for (const row of rows.toArray()) {
-      const character = await this._processRow(createCheerio(row));
+      const character = this._processRow(createCheerio(row));
       character && this._updatedCharacters.push(character);
     }
 
@@ -53,9 +67,9 @@ export class ActivityManager {
     );
 
     if (pageNumber.text()) {
-      return await this._scrape(isFirstRunOfMonth, initialPageNumber + 1);
+      return await this._scrape(shouldUpdateProbation, initialPageNumber + 1);
     } else {
-      if (isFirstRunOfMonth) this._updateProbationStatus();
+      if (shouldUpdateProbation) this._updateProbationStatuses();
 
       const result = await this._charactersRepository.save(
         this._updatedCharacters
@@ -67,7 +81,12 @@ export class ActivityManager {
     }
   }
 
-  private _updateProbationStatus() {
+  /**
+   * Scans through the list of updated characters and sets any characters that
+   * don't meet the monthly 2 post requirement to on-probation, or archives
+   * them if they already are on probation.
+   */
+  private _updateProbationStatuses(): void {
     const characters = [];
     for (const character of this._updatedCharacters) {
       if (!this._newCharactersThisRun.includes(character)) {
@@ -89,12 +108,21 @@ export class ActivityManager {
     this._updatedCharacters = characters;
   }
 
-  private _extractCharacterId = (nameElement: cheerio.Cheerio): number => {
+  /**
+   * Extracts the character ID from the href embedded in a character's name in
+   * the members page.
+   * @param nameElement The name html element with associated href.
+   */
+  private _extractCharacterId(nameElement: cheerio.Cheerio): number {
     const href = nameElement.find('a').attr('href');
     return parseInt(/.*showuser=(\d+).*/.exec(href)[1]);
-  };
+  }
 
-  private async _processRow(row: cheerio.Cheerio): Promise<Character> {
+  /**
+   * Processes a row in the members table on the jcink site.
+   * @param row A `tr` element in the members table.
+   */
+  private _processRow(row: cheerio.Cheerio): Character {
     const nameElement = row.find('.row4.name');
 
     if (!nameElement.text()) return null;
@@ -132,6 +160,11 @@ export class ActivityManager {
     return character;
   }
 
+  /**
+   * Runs the activity manager's scrape and updates character's in the database.
+   * @param isFirstRunOfMonth Whether this is the first run of the month (and
+   *                          if we should update probation/archivals).
+   */
   async run(isFirstRunOfMonth: boolean): Promise<Character[]> {
     await this._initialize();
 

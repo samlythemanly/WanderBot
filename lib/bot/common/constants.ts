@@ -1,18 +1,37 @@
-const resultsPerPage = 50;
+const _resultsPerPage = 50;
 
-export const url = (pageNumber: number) =>
+/**
+ * Returns the URL for the members page, on the provided page number.
+ * @param pageNumber The page number of the members list.
+ */
+export const memberPageUrl = (pageNumber: number) =>
   `https://wanderingwithwerewolves.jcink.net/index.php?&act=Members&photoonly` +
-  `=&name=&name_box=all&max_results=${resultsPerPage}&filter=ALL&sort_order=` +
-  `desc&sort_key=posts&st=${pageNumber * resultsPerPage}`;
+  `=&name=&name_box=all&max_results=${_resultsPerPage}&filter=ALL&sort_order=` +
+  `desc&sort_key=posts&st=${pageNumber * _resultsPerPage}`;
 
+/**
+ * Discord roles users can have.
+ *
+ * Currently only roles are defined if wanderbot cares about them.
+ */
 export enum Role {
   admin = 'Admin',
   wanderbotsFriend = "Wanderbot's Friend",
 }
 
+/**
+ * Channels wanderbot is not allowed to operate in.
+ */
 export const channelBlocklist = ['the-lobby', 'the-field', 'announcers-booth'];
+
+/**
+ * Staff-only channels where certain commands can only be executed.
+ */
 export const staffChannelCategories = ['Bot Playground', 'The Magic Treehouse'];
 
+/**
+ * Statuses that wanderbot can be "doing".
+ */
 export const statuses: [
   (
     | number
@@ -44,6 +63,9 @@ export const statuses: [
   ['PLAYING', 'with my BFF <3 Squidge <3'],
 ];
 
+/**
+ * Actions that wander bot can be "doing".
+ */
 export enum Action {
   playing,
   streaming,
@@ -51,11 +73,17 @@ export enum Action {
   watching,
 }
 
-export const pluralize = (word: string, amount: number) =>
+/**
+ * Potentially pluralizes a word that would end in "s" if it was plural.
+ * @param word The word to potentially pluralize.
+ * @param amount The amount of the word present.
+ */
+export const attemptPluralization = (word: string, amount: number) =>
   `${word}${amount === 1 ? '' : 's'}`;
 
-export const auditChannel = 'wanderbots-void';
-
+/**
+ * Compliments that wanderbot can send to someone.
+ */
 export const compliments = [
   "I think you're beautiful <3",
   'you have nice teeth.',
@@ -102,6 +130,9 @@ export const compliments = [
   '`ERROR 257: CUTENESS OVERLOAD`',
 ];
 
+/**
+ * Jokes that wanderbot can make.
+ */
 export const jokes: [string, string][] = [
   ['How many lips does a flower have?', 'Tu-lips.'],
   ['How does a squid go into battle?', 'Well armed.'],

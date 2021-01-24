@@ -32,6 +32,9 @@ export class Bot {
     });
   }
 
+  /**
+   * Logs into the Discord bot and starts the activity manager.
+   */
   async start(): Promise<void> {
     await this._database.initialize();
     this._characterRepository = this._database.connection.getRepository(
@@ -43,6 +46,13 @@ export class Bot {
     this._scrapeActivityEveryThirtyMinutes();
   }
 
+  /**
+   * Runs the scrape method every thirty minutes, starting from the closest
+   * thirty minute interval of the hour from now.
+   *
+   * i.e. If it's 1:15, it will wait until 1:30 to run, and then it will run
+   * every 30 minutes thereafter.
+   */
   private async _scrapeActivityEveryThirtyMinutes(): Promise<void> {
     const now = new Date();
 
@@ -70,7 +80,11 @@ export class Bot {
     }, timeUntilNextRun);
   }
 
-  private async _sendMonthlyUpdate() {
+  /**
+   * Sends an update to the admin of the bot containing information regarding
+   * which characters are now on probation and which are now archived.
+   */
+  private async _sendMonthlyUpdate(): Promise<void> {
     const characters = await this._characterRepository.find({
       relations: ['owner'],
     });

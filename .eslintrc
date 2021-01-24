@@ -2,6 +2,7 @@
   "extends": ["eslint:recommended", "plugin:node/recommended", "prettier"],
   "plugins": ["node", "prettier"],
   "rules": {
+    "require-await": "error",
     "prettier/prettier": "error",
     "block-scoped-var": "error",
     "eqeqeq": "error",
@@ -29,12 +30,13 @@
       "parser": "@typescript-eslint/parser",
       "extends": ["plugin:@typescript-eslint/recommended"],
       "rules": {
+        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-warning-comments": "off",
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-var-requires": "off",
-        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-function-return-type": "on",
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/ban-types": "off",
         "@typescript-eslint/camelcase": "off",
@@ -48,7 +50,8 @@
       },
       "parserOptions": {
         "ecmaVersion": 2017,
-        "sourceType": "script"
+        "sourceType": "script",
+        "project": "./tsconfig.json"
       }
     }
   ]
