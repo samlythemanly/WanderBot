@@ -68,7 +68,7 @@ export abstract class GeneralCommands {
     ]);
 
     for (const table of tables) {
-      message.channel.send(`\`\`\`\n${table.toString()}\n\`\`\``);
+      message.author.send(`\`\`\`\n${table.toString()}\n\`\`\``);
     }
 
     message.delete();
