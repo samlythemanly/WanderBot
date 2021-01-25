@@ -79,7 +79,7 @@ export class Bot {
             password: databasePassword,
             database: 'wanderbot',
           },
-          dumpToFile: `./wanderbot_${nextRun
+          dumpToFile: `./backups/wanderbot_${nextRun
             .toDate()
             .toLocaleDateString('default', {
               month: 'long',
