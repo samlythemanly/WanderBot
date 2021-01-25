@@ -9,8 +9,13 @@ import { Character } from './database/entities/character';
 import { Database } from './database';
 import { Repository } from 'typeorm';
 import * as moment from 'moment-timezone';
-import { adminDiscordIds, discordBotId } from './config/private';
+import {
+  adminDiscordIds,
+  databasePassword,
+  discordBotId,
+} from './config/private';
 import { createTables } from './common/util';
+import mysqldump from 'mysqldump';
 
 @injectable()
 export class Bot {
@@ -56,7 +61,7 @@ export class Bot {
   private async _scrapeActivityEveryThirtyMinutes(): Promise<void> {
     const now = moment.tz('America/Los_Angeles');
 
-    const nextRun = now.clone().add(30 - (now.minute() % 30), 'm');
+    const nextRun = now;
     const timeUntilNextRun = nextRun.diff(now, 'ms', true);
 
     setTimeout(async () => {
@@ -65,6 +70,26 @@ export class Bot {
       );
       const isFirstRunOfMonth =
         nextRun.date() === 1 && nextRun.hour() === 0 && nextRun.minute() === 0;
+
+      if (isFirstRunOfMonth) {
+        mysqldump({
+          connection: {
+            host: 'localhost',
+            user: 'root',
+            password: databasePassword,
+            database: 'wanderbot',
+          },
+          dumpToFile: `./wanderbot_${nextRun
+            .toDate()
+            .toLocaleDateString('default', {
+              month: 'long',
+            })
+            .toLowerCase()}_${nextRun
+            .toDate()
+            .getFullYear()}_backup.sql.tar.gz`,
+          compressFile: true,
+        });
+      }
 
       console.log(
         `${nextRun.format('MM-DD HH:mm:ss')}: Running activity manager and ${

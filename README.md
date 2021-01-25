@@ -33,6 +33,7 @@
 // private.ts
 
 export const adminDiscordIds = ['<a discord ID you want monthly updates sent to>', ...];
+export const databasePassword = '<password of the mysql database>';
 export const discordBotId = '<the ID of your Discord bot's application>';
 ```
 6. Run `npm i` to install your `node_modules`.
