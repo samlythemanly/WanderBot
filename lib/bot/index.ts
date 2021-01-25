@@ -61,7 +61,7 @@ export class Bot {
   private async _scrapeActivityEveryThirtyMinutes(): Promise<void> {
     const now = moment.tz('America/Los_Angeles');
 
-    const nextRun = now;
+    const nextRun = now.clone().add(30 - (now.minute() % 30), 'm');
     const timeUntilNextRun = nextRun.diff(now, 'ms', true);
 
     setTimeout(async () => {
