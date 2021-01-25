@@ -32,7 +32,7 @@
 ```
 // private.ts
 
-export const adminDiscordId = '<the discord ID you want monthly updates sent to>';
+export const adminDiscordIds = ['<a discord ID you want monthly updates sent to>', ...];
 export const discordBotId = '<the ID of your Discord bot's application>';
 ```
 6. Run `npm i` to install your `node_modules`.

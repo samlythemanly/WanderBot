@@ -7,7 +7,7 @@ import { Character } from '../database/entities/character';
  *               current page number.
  * @param characters The characters to be displayed in the table.
  * @param fields Which character fields to display as columns in the table.
- * @param showPageCount Whether to display the page count in the header.
+ * @param shouldShowPageCount Whether to display the page count in the header.
  * @returns A list of ascii tables, paginated every 5 characters. (The type is
  *          unknown because the ascii-table library doesn't have any types).
  */
@@ -15,7 +15,7 @@ export function createTables(
   header: string,
   characters: Character[],
   fields: string[],
-  showPageCount?: boolean
+  shouldShowPageCount: boolean = true
 ): unknown[] {
   const tables = [];
   const totalPages =
@@ -24,7 +24,9 @@ export function createTables(
     const page = characters.slice((pageNumber - 1) * 5, pageNumber * 5);
 
     const table = new asciiTable(
-      `${header}${showPageCount ? ` (Page ${pageNumber} of ${totalPages}` : ''}`
+      `${header}${
+        shouldShowPageCount ? ` (Page ${pageNumber} of ${totalPages}` : ''
+      }`
     );
 
     table.setHeading(_createHeading(fields));
