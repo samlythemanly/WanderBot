@@ -37,16 +37,14 @@ export class ActivityManager {
   /**
    * Recursively scrapes the jcink members pages to create a snapshot of
    * character activity.
-   * @param shouldUpdateProbation Whether we should enforce probation rule this
+   * @param shouldUpdateProbation Whether we should enforce probation rules this
    *                              run.
    * @param initialPageNumber The page number to start the scrape at.
    */
   private async _scrape(
     shouldUpdateProbation: boolean,
-    initialPageNumber?: number
+    initialPageNumber: number = 0
   ): Promise<Character[]> {
-    if (!initialPageNumber) initialPageNumber = 0;
-
     this._existingCharacters = await this._charactersRepository.find();
 
     const html = (await this.axios.get(memberPageUrl(initialPageNumber))).data;

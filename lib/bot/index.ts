@@ -66,7 +66,7 @@ export class Bot {
         { isArchived: true }
       );
       const isFirstRunOfMonth =
-        nextRun.day() === 1 && nextRun.hour() === 0 && nextRun.minute() === 0;
+        nextRun.date() === 1 && nextRun.hour() === 0 && nextRun.minute() === 0;
 
       console.log(
         `${nextRun.format('MM-DD HH:mm:ss')}: Running activity manager and ${
