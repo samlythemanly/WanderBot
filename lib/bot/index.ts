@@ -66,6 +66,13 @@ export class Bot {
         { isArchived: true }
       );
       const isFirstRunOfMonth = nextRun.day() === 1 && nextRun.hour() === 0;
+
+      console.log(
+        `${nextRun.format('MM-DD HH:mm:ss')}: Running activity manager and ${
+          isFirstRunOfMonth ? '' : 'NOT '
+        }updating probation and archival statuses.`
+      );
+
       await this._activityManager.run(isFirstRunOfMonth);
       if (isFirstRunOfMonth) {
         await this._sendMonthlyUpdate();

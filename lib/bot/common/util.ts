@@ -24,9 +24,7 @@ export function createTables(
     const page = characters.slice((pageNumber - 1) * 5, pageNumber * 5);
 
     const table = new asciiTable(
-      `${header}${
-        showPageCount ? ` (Page ${pageNumber} of ${totalPages}` : ''
-      })}`
+      `${header}${showPageCount ? ` (Page ${pageNumber} of ${totalPages}` : ''}`
     );
 
     table.setHeading(_createHeading(fields));
