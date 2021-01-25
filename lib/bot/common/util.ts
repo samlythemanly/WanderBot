@@ -26,7 +26,7 @@ export function createTables(
     const table = new asciiTable(
       `${header}${
         shouldShowPageCount ? ` (Page ${pageNumber} of ${totalPages}` : ''
-      }`
+      })`
     );
 
     table.setHeading(_createHeading(fields));
