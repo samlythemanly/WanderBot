@@ -8,7 +8,7 @@ import { ActivityManager } from './activity_manager';
 import { Character } from './database/entities/character';
 import { Database } from './database';
 import { Repository } from 'typeorm';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone';
 import { adminDiscordIds, discordBotId } from './config/private';
 import { createTables } from './common/util';
 
@@ -54,12 +54,10 @@ export class Bot {
    * every 30 minutes thereafter.
    */
   private async _scrapeActivityEveryThirtyMinutes(): Promise<void> {
-    const now = new Date();
+    const now = moment.tz('America/Los_Angeles');
 
-    const nowMoment = moment(now);
-
-    const nextRun = nowMoment.clone().add(30 - (nowMoment.minute() % 30), 'm');
-    const timeUntilNextRun = nextRun.diff(nowMoment, 'ms', true);
+    const nextRun = now.clone().add(30 - (now.minute() % 30), 'm');
+    const timeUntilNextRun = nextRun.diff(now, 'ms', true);
 
     setTimeout(async () => {
       this._archivedCharactersBeforeScrape = await this._characterRepository.find(
