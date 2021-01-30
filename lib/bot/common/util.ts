@@ -70,7 +70,7 @@ function _createRow(character: Character, fields: string[]): unknown[] {
   if (fields.includes('monthlyPostCount'))
     columns.push(character.monthlyPostCount);
   if (fields.includes('postCount')) columns.push(character.postCount);
-  if (fields.includes('isNew')) columns.push(character.isNew);
+  if (fields.includes('isNew')) columns.push(character.isNew ? 'Yes' : 'No');
 
   let probationStatus = character.isArchived
     ? 'Archived'
