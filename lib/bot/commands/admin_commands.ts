@@ -312,7 +312,7 @@ export abstract class AdminCommands {
         'monthlyPostCount',
         'postCount',
         'isNew',
-        'isOnProbation',
+        'probationStatus',
       ],
       false
     );

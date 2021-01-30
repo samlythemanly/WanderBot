@@ -55,8 +55,7 @@ function _createHeading(fields: string[]): string[] {
   if (fields.includes('monthlyPostCount')) columns.push('Monthly posts');
   if (fields.includes('postCount')) columns.push('Total posts');
   if (fields.includes('isNew')) columns.push('New?');
-  if (fields.includes('isOnProbation')) columns.push('On probation?');
-  if (fields.includes('isArchived')) columns.push('Archived?');
+  if (fields.includes('probationStatus')) columns.push('Probation status');
 
   return columns;
 }
@@ -72,8 +71,14 @@ function _createRow(character: Character, fields: string[]): unknown[] {
     columns.push(character.monthlyPostCount);
   if (fields.includes('postCount')) columns.push(character.postCount);
   if (fields.includes('isNew')) columns.push(character.isNew);
-  if (fields.includes('isOnProbation')) columns.push(character.isOnProbation);
-  if (fields.includes('isArchived')) columns.push(character.isArchived);
+
+  let probationStatus = character.isArchived
+    ? 'Archived'
+    : character.isOnProbation
+    ? 'Probation'
+    : 'None';
+
+  if (fields.includes('probationStatus')) columns.push(probationStatus);
 
   return columns;
 }
