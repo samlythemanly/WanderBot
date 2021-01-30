@@ -8,3 +8,4 @@ temp/
 **/*/private.ts
 ormconfig.json
 backups/
+logs/

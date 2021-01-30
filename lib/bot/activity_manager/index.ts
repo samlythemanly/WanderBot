@@ -162,7 +162,8 @@ export class ActivityManager {
 
     // Update the character's total and monthly post counts.
     character.monthlyPostCount =
-      character.monthlyPostCount ?? 0 + (postCount - character.postCount ?? 0);
+      (character.monthlyPostCount ?? 0) +
+      (postCount - (character.postCount ?? 0));
     character.postCount = postCount;
 
     if (character.monthlyPostCount >= 2) character.isOnProbation = false;
