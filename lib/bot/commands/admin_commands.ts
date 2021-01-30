@@ -313,7 +313,6 @@ export abstract class AdminCommands {
         'postCount',
         'isNew',
         'isOnProbation',
-        'isArchived',
       ],
       false
     );
