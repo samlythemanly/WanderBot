@@ -77,6 +77,7 @@ export abstract class GeneralCommands {
 
     const tables = createTables('Your current activity', characters, [
       'name',
+      'nickname',
       'monthlyPostCount',
       'postCount',
       'isOnProbation',
@@ -109,6 +110,7 @@ export abstract class GeneralCommands {
 
     const tables = createTables(`Activity for ${name}`, characters, [
       'name',
+      'nickname',
       'monthlyPostCount',
       'postCount',
       'isOnProbation',

@@ -307,6 +307,7 @@ export abstract class AdminCommands {
       [
         'id',
         'name',
+        'nickname',
         'owner',
         'monthlyPostCount',
         'postCount',

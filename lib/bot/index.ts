@@ -151,7 +151,7 @@ export class Bot {
         const tables = createTables(
           'Characters now on probation',
           charactersNowArchived,
-          ['name', 'owner', 'monthlyPostCount', 'postCount']
+          ['name', 'nickname', 'owner', 'monthlyPostCount', 'postCount']
         );
 
         for (const table of tables) {
@@ -167,7 +167,7 @@ export class Bot {
         const tables = createTables(
           'Characters now archived',
           charactersNowArchived,
-          ['name', 'owner', 'monthlyPostCount', 'postCount']
+          ['name', 'nickname', 'owner', 'monthlyPostCount', 'postCount']
         );
 
         for (const table of tables) {
