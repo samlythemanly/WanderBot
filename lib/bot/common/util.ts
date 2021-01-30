@@ -17,11 +17,15 @@ export function createTables(
   fields: string[],
   shouldShowPageCount: boolean = true
 ): unknown[] {
+  const sortedCharacters = characters.sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
   const tables = [];
   const totalPages =
-    Math.floor(characters.length / 5) + (characters.length % 5 > 0 ? 1 : 0);
+    Math.floor(sortedCharacters.length / 5) +
+    (sortedCharacters.length % 5 > 0 ? 1 : 0);
   for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
-    const page = characters.slice((pageNumber - 1) * 5, pageNumber * 5);
+    const page = sortedCharacters.slice((pageNumber - 1) * 5, pageNumber * 5);
 
     const table = new asciiTable(
       `${header}${
