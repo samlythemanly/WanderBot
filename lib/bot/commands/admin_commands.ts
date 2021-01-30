@@ -342,7 +342,7 @@ export abstract class AdminCommands {
     if (!character) return;
 
     await message.channel.send(
-      `${name} is ${character.isArchived ? '' : ' NOT '} archived.`
+      `${character.name} is ${character.isArchived ? '' : ' NOT '} archived.`
     );
   }
 
@@ -368,7 +368,9 @@ export abstract class AdminCommands {
     if (!character) return;
 
     await message.channel.send(
-      `${name} is ${character.isOnProbation ? '' : ' NOT '} on probation.`
+      `${character.name} is ${
+        character.isOnProbation ? '' : ' NOT '
+      } on probation.`
     );
   }
 
@@ -403,7 +405,7 @@ export abstract class AdminCommands {
     }
 
     await message.channel.send(
-      `${name} is now ${isArchived ? '' : 'NOT '}archived.`
+      `${character.name} is now ${isArchived ? '' : 'NOT '}archived.`
     );
   }
 
@@ -437,7 +439,7 @@ export abstract class AdminCommands {
     }
 
     await message.channel.send(
-      `${name} now has a monthly post count of ${message.args.postCount}.`
+      `${character.name} now has a monthly post count of ${message.args.postCount}.`
     );
   }
 
@@ -475,7 +477,7 @@ export abstract class AdminCommands {
     }
 
     await message.channel.send(
-      `${name} is now ${isOnProbation ? '' : 'NOT '}on probation.`
+      `${character.name} is now ${isOnProbation ? '' : 'NOT '}on probation.`
     );
   }
 
@@ -570,7 +572,9 @@ export abstract class AdminCommands {
       return;
     }
 
-    await message.channel.send(`${name} now has the nickname ${nickname}.`);
+    await message.channel.send(
+      `${characterByName.name} now has the nickname ${nickname}.`
+    );
   }
 
   private _parseBool(bool: string): boolean {
