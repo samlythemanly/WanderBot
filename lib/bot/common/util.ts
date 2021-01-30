@@ -29,8 +29,8 @@ export function createTables(
 
     const table = new asciiTable(
       `${header}${
-        shouldShowPageCount ? ` (Page ${pageNumber} of ${totalPages}` : ''
-      })`
+        shouldShowPageCount ? ` (Page ${pageNumber} of ${totalPages})` : ''
+      }`
     );
 
     table.setHeading(_createHeading(fields));
@@ -52,8 +52,8 @@ function _createHeading(fields: string[]): string[] {
   if (fields.includes('name')) columns.push('Name');
   if (fields.includes('nickname')) columns.push('Nickname');
   if (fields.includes('owner')) columns.push('Owner');
-  if (fields.includes('monthlyPostCount')) columns.push('Monthly posts');
-  if (fields.includes('postCount')) columns.push('Total posts');
+  if (fields.includes('monthlyPostCount')) columns.push('Monthly\nposts');
+  if (fields.includes('postCount')) columns.push('Total\nposts');
   if (fields.includes('isNew')) columns.push('New?');
   if (fields.includes('isOnProbation')) columns.push('On probation?');
   if (fields.includes('isArchived')) columns.push('Archived?');
