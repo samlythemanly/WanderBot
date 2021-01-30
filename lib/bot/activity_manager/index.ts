@@ -69,13 +69,25 @@ export class ActivityManager {
     } else {
       if (shouldUpdateProbation) this._updateProbationStatuses();
 
-      const result = await this._charactersRepository.save(
+      const characters = await this._charactersRepository.save(
         this._updatedCharacters
       );
 
-      console.log(`Updated ${result.length} characters.`);
+      for (const character of characters) {
+        const messages = [
+          `Name: ${character.name}`,
+          `Monthly post count: ${character.monthlyPostCount}`,
+          `Total post count: ${character.postCount}`,
+          `Is new: ${character.isNew}`,
+          `Is on probation: ${character.isOnProbation}`,
+          `Is archived: ${character.isArchived}`,
+          '\n',
+        ];
 
-      return result;
+        console.log(messages.join('\n'));
+      }
+
+      return characters;
     }
   }
 
