@@ -299,10 +299,7 @@ export abstract class AdminCommands {
       message.channel
     );
 
-    if (!character) {
-      await message.channel.send(`I couldn't find a character named ${name}.`);
-      return;
-    }
+    if (!character) return;
 
     const table = createTables(
       `Details for ${character.name}`,
@@ -342,10 +339,7 @@ export abstract class AdminCommands {
       message.channel
     );
 
-    if (!character) {
-      await message.channel.send(`I couldn't find a character named ${name}.`);
-      return;
-    }
+    if (!character) return;
 
     await message.channel.send(
       `${name} is ${character.isArchived ? '' : ' NOT '} archived.`
@@ -371,10 +365,7 @@ export abstract class AdminCommands {
       message.channel
     );
 
-    if (!character) {
-      await message.channel.send(`I couldn't find a character named ${name}.`);
-      return;
-    }
+    if (!character) return;
 
     await message.channel.send(
       `${name} is ${character.isOnProbation ? '' : ' NOT '} on probation.`
@@ -400,10 +391,7 @@ export abstract class AdminCommands {
     );
     const isArchived = this._parseBool(message.args.isArchived);
 
-    if (!character) {
-      await message.channel.send(`I couldn't find a character named ${name}.`);
-      return;
-    }
+    if (!character) return;
 
     const result = await this._characters.update(character.id, {
       isArchived: ((isArchived ? 1 : 0) as unknown) as boolean,
@@ -437,10 +425,7 @@ export abstract class AdminCommands {
       message.channel
     );
 
-    if (!character) {
-      await message.channel.send(`I couldn't find a character named ${name}.`);
-      return;
-    }
+    if (!character) return;
 
     const result = await this._characters.update(character.id, {
       monthlyPostCount: message.args.postCount,
@@ -543,6 +528,49 @@ export abstract class AdminCommands {
     await message.channel.send(
       `Successfully changed ${character.name}'s name to ${newName}.`
     );
+  }
+
+  /**
+   * Sets a new nickname for the provided character.
+   */
+  @Command('setNickName :nickname :name')
+  @Guard(hasRole(Role.admin))
+  @Infos({
+    isAdmin: true,
+    isHidden: true,
+    usage: '!setNickName <nickname> <name>',
+  })
+  async setNickname(message: CommandMessage): Promise<void> {
+    const name = message.content.split(' ').slice(2).join(' ');
+    const characterByName = await findCharacterWithName(
+      name,
+      this._characters,
+      message.channel
+    );
+
+    if (!characterByName) return;
+
+    const nickname = message.args.nickname;
+
+    const characterByNickname = await findCharacterWithName(
+      nickname,
+      this._characters,
+      message.channel,
+      true
+    );
+
+    if (characterByNickname) return;
+
+    const result = await this._characters.update(characterByName.id, {
+      nickname: nickname,
+    });
+
+    if (!result.affected) {
+      await message.channel.send('Something went wrong.');
+      return;
+    }
+
+    await message.channel.send(`${name} now has the nickname ${nickname}.`);
   }
 
   private _parseBool(bool: string): boolean {

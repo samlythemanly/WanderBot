@@ -1,5 +1,12 @@
 import { DMChannel, NewsChannel, TextChannel } from 'discord.js';
-import { Entity, PrimaryColumn, Column, ManyToOne, Repository } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  Repository,
+  Equal,
+} from 'typeorm';
 import { User } from './user';
 
 @Entity({ name: 'Characters' })
@@ -12,6 +19,9 @@ export class Character {
 
   @Column({ type: 'varchar', nullable: false })
   name!: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  nickname!: string;
 
   @Column({ type: 'int', nullable: false })
   postCount!: number;
@@ -35,14 +45,11 @@ export const findCharacterWithName = async (
   channel: TextChannel | DMChannel | NewsChannel,
   shouldRejectExisting?: boolean
 ): Promise<Character> => {
-  const character = await repository.findOne(
-    {
-      name: name,
-    },
-    {
-      relations: ['owner'],
-    }
-  );
+  const character = await repository.findOne({
+    where: [{ name: Equal(name) }, { nickname: Equal(name) }],
+
+    relations: ['owner'],
+  });
 
   if (character && shouldRejectExisting) {
     channel.send(`A character named ${name} already exists!`);

@@ -50,6 +50,7 @@ function _createHeading(fields: string[]): string[] {
 
   if (fields.includes('id')) columns.push('ID');
   if (fields.includes('name')) columns.push('Name');
+  if (fields.includes('nickname')) columns.push('Nickname');
   if (fields.includes('owner')) columns.push('Owner');
   if (fields.includes('monthlyPostCount')) columns.push('Monthly posts');
   if (fields.includes('postCount')) columns.push('Total posts');
@@ -65,6 +66,7 @@ function _createRow(character: Character, fields: string[]): unknown[] {
 
   if (fields.includes('id')) columns.push(character.id);
   if (fields.includes('name')) columns.push(character.name);
+  if (fields.includes('nickname')) columns.push(character.nickname ?? 'None');
   if (fields.includes('owner')) columns.push(character.owner?.name ?? 'None');
   if (fields.includes('monthlyPostCount'))
     columns.push(character.monthlyPostCount);
