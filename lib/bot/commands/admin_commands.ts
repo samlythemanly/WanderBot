@@ -11,10 +11,7 @@ import {
 import { Repository } from 'typeorm';
 import { Role, statuses } from '../common/constants';
 import { Database } from '../database';
-import {
-  findCharacterWithName,
-  Character,
-} from '../database/entities/character';
+import { findCharacter, Character } from '../database/entities/character';
 import { findUserWithName, User } from '../database/entities/user';
 import { hasRole } from './guards';
 import { lazyInject } from '../config/inversify.config';
@@ -134,7 +131,7 @@ export abstract class AdminCommands {
 
     if (!user) return;
 
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       characterName,
       this._characters,
       message.channel
@@ -166,7 +163,7 @@ export abstract class AdminCommands {
   async unlinkCharacter(message: CommandMessage): Promise<void> {
     const name = message.commandContent.split(' ').splice(1).join(' ');
 
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -293,7 +290,7 @@ export abstract class AdminCommands {
   async describe(message: CommandMessage): Promise<void> {
     const name = message.commandContent.split(' ').splice(1).join(' ');
 
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -333,7 +330,7 @@ export abstract class AdminCommands {
   async isArchived(message: CommandMessage): Promise<void> {
     const name = message.content.split(' ').slice(1).join(' ');
 
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -359,7 +356,7 @@ export abstract class AdminCommands {
   async isOnProbation(message: CommandMessage): Promise<void> {
     const name = message.content.split(' ').slice(1).join(' ');
 
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -386,7 +383,7 @@ export abstract class AdminCommands {
   })
   async setArchived(message: CommandMessage): Promise<void> {
     const name = message.content.split(' ').slice(2).join(' ');
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -421,7 +418,7 @@ export abstract class AdminCommands {
   })
   async setMonthlyPostCount(message: CommandMessage): Promise<void> {
     const name = message.content.split(' ').slice(2).join(' ');
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -455,7 +452,7 @@ export abstract class AdminCommands {
   })
   async setProbation(message: CommandMessage): Promise<void> {
     const name = message.content.split(' ').slice(2).join(' ');
-    const character = await findCharacterWithName(
+    const character = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -509,7 +506,7 @@ export abstract class AdminCommands {
       return;
     }
 
-    const existingCharacter = await findCharacterWithName(
+    const existingCharacter = await findCharacter(
       newName,
       this._characters,
       message.channel,
@@ -535,16 +532,16 @@ export abstract class AdminCommands {
   /**
    * Sets a new nickname for the provided character.
    */
-  @Command('setNickName :nickname :name')
+  @Command('setNickname :nickname :name')
   @Guard(hasRole(Role.admin))
   @Infos({
     isAdmin: true,
     isHidden: true,
-    usage: '!setNickName <nickname> <name>',
+    usage: '!setNickname <nickname> <name>',
   })
   async setNickname(message: CommandMessage): Promise<void> {
     const name = message.content.split(' ').slice(2).join(' ');
-    const characterByName = await findCharacterWithName(
+    const characterByName = await findCharacter(
       name,
       this._characters,
       message.channel
@@ -554,7 +551,7 @@ export abstract class AdminCommands {
 
     const nickname = message.args.nickname;
 
-    const characterByNickname = await findCharacterWithName(
+    const characterByNickname = await findCharacter(
       nickname,
       this._characters,
       message.channel,

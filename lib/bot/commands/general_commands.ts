@@ -91,11 +91,11 @@ export abstract class GeneralCommands {
   }
 
   /**
-   * Returns the activity for the provided character.
+   * Returns the activity for the provided user.
    */
   @Guard(isStaffChannel)
   @Command('activityFor :name')
-  @Infos({ usage: '!activityFor <character name>' })
+  @Infos({ usage: '!activityFor <user name>' })
   async activityFor(message: CommandMessage) {
     const name = message.args.name;
     const user = await findUserWithName(name, this._users, message.channel);

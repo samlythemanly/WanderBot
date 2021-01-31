@@ -39,17 +39,36 @@ export class Character {
   isNew!: boolean;
 }
 
-export const findCharacterWithName = async (
-  name: string,
+export const findCharacter = async (
+  nameAndOwner: string,
   repository: Repository<Character>,
   channel: TextChannel | DMChannel | NewsChannel,
   shouldRejectExisting?: boolean
 ): Promise<Character> => {
-  const character = await repository.findOne({
-    where: [{ name: Equal(name) }, { nickname: Equal(name) }],
+  const characterNameAndOwner = nameAndOwner.split('|');
 
-    relations: ['owner'],
-  });
+  const name = characterNameAndOwner[0];
+  const owner = characterNameAndOwner[1];
+
+  let character;
+
+  if (owner) {
+    character = await repository.findOne({
+      where: [
+        { name: Equal(name), owner: owner, isArchived: false },
+        { nickname: Equal(name), owner: owner, isArchived: false },
+      ],
+      relations: ['owner'],
+    });
+  } else {
+    character = await repository.findOne({
+      where: [
+        { name: Equal(name), isArchived: false },
+        { nickname: Equal(name), isArchived: false },
+      ],
+      relations: ['owner'],
+    });
+  }
 
   if (character && shouldRejectExisting) {
     channel.send(`A character named ${name} already exists!`);
