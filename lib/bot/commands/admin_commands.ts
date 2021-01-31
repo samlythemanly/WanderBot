@@ -561,7 +561,7 @@ export abstract class AdminCommands {
     if (characterByNickname) return;
 
     const nicknameAndOwner = nickname.split('|');
-    const newNickname = nickname[0];
+    const newNickname = nicknameAndOwner[0];
 
     const result = await this._characters.update(characterByName.id, {
       nickname: newNickname,
