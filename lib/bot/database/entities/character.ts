@@ -6,6 +6,8 @@ import {
   ManyToOne,
   Repository,
   Equal,
+  WhereExpression,
+  Like,
 } from 'typeorm';
 import { User } from './user';
 
@@ -14,7 +16,7 @@ export class Character {
   @PrimaryColumn({ type: 'bigint' })
   id!: number;
 
-  @ManyToOne(() => User, user => user.characters)
+  @ManyToOne(() => User, user => user.characters, { eager: true })
   owner!: User;
 
   @Column({ type: 'varchar', nullable: false })
@@ -50,32 +52,33 @@ export const findCharacter = async (
   const name = characterNameAndOwner[0];
   const owner = characterNameAndOwner[1];
 
-  let character;
+  let character: Character;
 
   if (owner) {
-    character = await repository.findOne({
-      where: [
-        { name: Equal(name), owner: { name: owner }, isArchived: false },
-        { nickname: Equal(name), owner: { name: owner }, isArchived: false },
-      ],
-      relations: ['owner'],
-    });
+    character = await repository
+      .createQueryBuilder('character')
+      .innerJoinAndSelect('character.owner', 'owner')
+      .where('owner.name = :ownerName', { ownerName: owner })
+      .andWhere('character.isArchived = 0')
+      .andWhere('character.nickname = :nickname', { nickname: name })
+      .orWhere('character.name = :characterName', { characterName: name })
+      .getOne();
   } else {
     character = await repository.findOne({
       where: [
-        { name: Equal(name), isArchived: false },
-        { nickname: Equal(name), isArchived: false },
+        { name: Equal(name), isArchived: Equal(false) },
+        { nickname: Equal(name), isArchived: Equal(false) },
       ],
       relations: ['owner'],
     });
   }
 
   if (character && shouldRejectExisting) {
-    channel.send(`A character named ${name} already exists!`);
+    await channel.send(`A character named ${name} already exists!`);
   }
 
   if (!character && !shouldRejectExisting) {
-    channel.send(
+    await channel.send(
       `Sorry, I couldn't find an existing character with the name ${name}.`
     );
   }
