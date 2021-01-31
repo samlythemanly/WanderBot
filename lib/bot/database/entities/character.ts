@@ -55,8 +55,8 @@ export const findCharacter = async (
   if (owner) {
     character = await repository.findOne({
       where: [
-        { name: Equal(name), owner: owner, isArchived: false },
-        { nickname: Equal(name), owner: owner, isArchived: false },
+        { name: Equal(name), owner: { name: owner }, isArchived: false },
+        { nickname: Equal(name), owner: { name: owner }, isArchived: false },
       ],
       relations: ['owner'],
     });
