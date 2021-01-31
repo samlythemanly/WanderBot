@@ -560,8 +560,11 @@ export abstract class AdminCommands {
 
     if (characterByNickname) return;
 
+    const nicknameAndOwner = nickname.split('|');
+    const newNickname = nickname[0];
+
     const result = await this._characters.update(characterByName.id, {
-      nickname: nickname,
+      nickname: newNickname,
     });
 
     if (!result.affected) {
@@ -570,7 +573,7 @@ export abstract class AdminCommands {
     }
 
     await message.channel.send(
-      `${characterByName.name} now has the nickname ${nickname}.`
+      `${characterByName.name} now has the nickname ${newNickname}.`
     );
   }
 
