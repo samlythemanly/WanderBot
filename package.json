@@ -8,7 +8,7 @@
     "fix": "eslint --fix '**/*.ts'",
     "watch": "node_modules/.bin/tsc -w",
     "build": "node_modules/.bin/tsc",
-    "start": "node build/index.js"
+    "start": "npm run build && node build/index.js"
   },
   "author": "",
   "license": "ISC",

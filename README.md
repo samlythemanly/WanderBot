@@ -37,6 +37,5 @@ export const databasePassword = '<password of the mysql database>';
 export const discordBotId = '<the ID of your Discord bot's application>';
 ```
 6. Run `npm i` to install your `node_modules`.
-7. Run `npm run build` to compile the source code (yes I know I could bundle this into `npm start` but I'm lazy, leave me alone).
-8. Run `npm start`.
-9. That's it!
+7. Run `npm start`.
+8. That's it!
