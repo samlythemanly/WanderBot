@@ -59,16 +59,12 @@ export const findCharacter = async (
       .createQueryBuilder('character')
       .innerJoinAndSelect('character.owner', 'owner')
       .where('owner.name = :ownerName', { ownerName: owner })
-      .andWhere('character.isArchived = 0')
       .andWhere('character.nickname = :nickname', { nickname: name })
       .orWhere('character.name = :characterName', { characterName: name })
       .getOne();
   } else {
     character = await repository.findOne({
-      where: [
-        { name: Equal(name), isArchived: Equal(false) },
-        { nickname: Equal(name), isArchived: Equal(false) },
-      ],
+      where: [{ name: Equal(name) }, { nickname: Equal(name) }],
       relations: ['owner'],
     });
   }
