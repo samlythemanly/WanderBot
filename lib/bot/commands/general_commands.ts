@@ -108,7 +108,7 @@ export abstract class GeneralCommands {
       ...user.characters.filter(character => !character.isArchived),
     ];
 
-    const tables = createTables(`Activity for ${name}`, characters, [
+    const tables = createTables(`Activity for ${user.name}`, characters, [
       'name',
       'nickname',
       'monthlyPostCount',
