@@ -578,18 +578,6 @@ export abstract class AdminCommands {
     );
   }
 
-  /**
-   * Sends a message to the channel when a command is executed that isn't
-   * defined.
-   */
-  @CommandNotFound()
-  async commandNotFound(message: CommandMessage): Promise<void> {
-    await message.channel.send(
-      "I'm sorry, I don't understand! Please type '!help' for a list of " +
-        'commands I understand.'
-    );
-  }
-
   private _parseBool(bool: string): boolean {
     const lowercase = bool.toLowerCase();
     return lowercase === 'yes' || lowercase === 'true';
