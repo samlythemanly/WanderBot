@@ -55,7 +55,7 @@ function _createHeading(fields: string[]): string[] {
   if (fields.includes('monthlyPostCount')) columns.push('Monthly posts');
   if (fields.includes('postCount')) columns.push('Total posts');
   if (fields.includes('isNew')) columns.push('New?');
-  if (fields.includes('probationStatus')) columns.push('Probation status');
+  if (fields.includes('status')) columns.push('Status');
 
   return columns;
 }
@@ -72,13 +72,13 @@ function _createRow(character: Character, fields: string[]): unknown[] {
   if (fields.includes('postCount')) columns.push(character.postCount);
   if (fields.includes('isNew')) columns.push(character.isNew ? 'Yes' : 'No');
 
-  let probationStatus = character.isArchived
+  let status = character.isArchived
     ? 'Archived'
     : character.isOnProbation
     ? 'Probation'
-    : 'None';
+    : 'Active';
 
-  if (fields.includes('probationStatus')) columns.push(probationStatus);
+  if (fields.includes('status')) columns.push(status);
 
   return columns;
 }

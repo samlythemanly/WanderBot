@@ -67,7 +67,7 @@ export class ActivityManager {
     if (pageNumber.text()) {
       return await this._scrape(shouldUpdateProbation, initialPageNumber + 1);
     } else {
-      if (shouldUpdateProbation) this._updateProbationStatuses();
+      if (shouldUpdateProbation) this._updatestatuses();
 
       const characters = await this._charactersRepository.save(
         this._updatedCharacters
@@ -96,7 +96,7 @@ export class ActivityManager {
    * don't meet the monthly 2 post requirement to on-probation, or archives
    * them if they already are on probation.
    */
-  private _updateProbationStatuses(): void {
+  private _updatestatuses(): void {
     const characters = [];
     for (const character of this._updatedCharacters) {
       if (!this._newCharactersThisRun.includes(character)) {

@@ -80,7 +80,7 @@ export abstract class GeneralCommands {
       'nickname',
       'monthlyPostCount',
       'postCount',
-      'probationStatus',
+      'status',
     ]);
 
     for (const table of tables) {
@@ -113,7 +113,7 @@ export abstract class GeneralCommands {
       'nickname',
       'monthlyPostCount',
       'postCount',
-      'probationStatus',
+      'status',
     ]);
 
     for (const table of tables) {
