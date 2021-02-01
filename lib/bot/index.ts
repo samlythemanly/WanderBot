@@ -33,7 +33,6 @@ export class Bot {
     this._client = new Client({
       classes: [AdminCommands, GeneralCommands],
       silent: false,
-      variablesChar: '!',
     });
   }
 
