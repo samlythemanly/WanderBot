@@ -72,23 +72,24 @@ export class Bot {
         nextRun.date() === 1 && nextRun.hour() === 0 && nextRun.minute() === 0;
 
       if (isFirstRunOfMonth) {
-        mysqldump({
-          connection: {
-            host: 'localhost',
-            user: 'root',
-            password: databasePassword,
-            database: 'wanderbot',
-          },
-          dumpToFile: `./backups/wanderbot_${nextRun
-            .toDate()
-            .toLocaleDateString('default', {
-              month: 'long',
-            })
-            .toLowerCase()}_${nextRun
-            .toDate()
-            .getFullYear()}_backup.sql.tar.gz`,
-          compressFile: true,
-        });
+        // TODO: fix this
+        // mysqldump({
+        //   connection: {
+        //     host: 'localhost',
+        //     user: 'root',
+        //     password: databasePassword,
+        //     database: 'wanderbot',
+        //   },
+        //   dumpToFile: `./backups/wanderbot_${nextRun
+        //     .toDate()
+        //     .toLocaleDateString('default', {
+        //       month: 'long',
+        //     })
+        //     .toLowerCase()}_${nextRun
+        //     .toDate()
+        //     .getFullYear()}_backup.sql.tar.gz`,
+        //   compressFile: true,
+        // });
       }
 
       console.log(
