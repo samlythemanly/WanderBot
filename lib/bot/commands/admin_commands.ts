@@ -6,6 +6,7 @@ import {
   Infos,
   Guard,
   Once,
+  CommandNotFound,
   // eslint-disable-next-line node/no-unpublished-import
 } from '@typeit/discord';
 import { Repository } from 'typeorm';
@@ -574,6 +575,18 @@ export abstract class AdminCommands {
 
     await message.channel.send(
       `${characterByName.name} now has the nickname ${newNickname}.`
+    );
+  }
+
+  /**
+   * Sends a message to the channel when a command is executed that isn't
+   * defined.
+   */
+  @CommandNotFound()
+  async commandNotFound(message: CommandMessage): Promise<void> {
+    await message.channel.send(
+      "I'm sorry, I don't understand! Please type '!help' for a list of " +
+        'commands I understand.'
     );
   }
 
