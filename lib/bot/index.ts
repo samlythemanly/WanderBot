@@ -151,12 +151,12 @@ export class Bot {
 
         const tables = createTables(
           'Characters now on probation',
-          charactersNowArchived,
+          charactersNowOnProbation,
           ['name', 'nickname', 'owner', 'monthlyPostCount', 'postCount']
         );
 
         for (const table of tables) {
-          await admin.send(table.toString());
+          await admin.send(`\`\`\`\n${table.toString()}\n\`\`\``);
         }
       }
 
